@@ -40,4 +40,8 @@
 
     </aws-account>
   </aws-cloud>
+
+  <!-- connection: elbow arrows between items (src/dst = service-catalog.csv ID) -->
+  <connection src="1178" dst="1189" />
+  <connection src="1189" dst="1179" />
 </frame>

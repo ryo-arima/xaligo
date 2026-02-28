@@ -34,6 +34,11 @@ func Parse(r io.Reader) (model.Document, error) {
 					return model.Document{}, fmt.Errorf("parse <item>: %w", err)
 				}
 			}
+			if node.Tag == "connection" {
+				if err := validateConnectionNode(node); err != nil {
+					return model.Document{}, fmt.Errorf("parse <connection>: %w", err)
+				}
+			}
 			if len(stack) == 0 {
 				root = node
 			} else {
@@ -72,11 +77,12 @@ func Parse(r io.Reader) (model.Document, error) {
 	return model.Document{Root: root}, nil
 }
 
-// validateItemNode ensures <item> carries exactly one numeric id attribute.
+// validateItemNode ensures <item> carries at most one numeric id attribute.
+// An empty (or absent) id is allowed — the item acts as a layout spacer.
 func validateItemNode(node *model.Node) error {
 	id, ok := node.Attrs["id"]
 	if !ok || strings.TrimSpace(id) == "" {
-		return fmt.Errorf("<item> requires an id attribute")
+		return nil // spacer item — no id required
 	}
 	if strings.Contains(id, ",") {
 		return fmt.Errorf("<item id=%q> must contain a single ID; use separate <item> tags for multiple services", id)
@@ -84,6 +90,29 @@ func validateItemNode(node *model.Node) error {
 	for _, ch := range strings.TrimSpace(id) {
 		if ch < '0' || ch > '9' {
 			return fmt.Errorf("<item id=%q> must be a positive integer", id)
+		}
+	}
+	return nil
+}
+
+// validateConnectionNode ensures <connection> carries numeric src and dst attributes.
+func validateConnectionNode(node *model.Node) error {
+	src, hasSrc := node.Attrs["src"]
+	dst, hasDst := node.Attrs["dst"]
+	if !hasSrc || strings.TrimSpace(src) == "" {
+		return fmt.Errorf("<connection> requires a src attribute")
+	}
+	if !hasDst || strings.TrimSpace(dst) == "" {
+		return fmt.Errorf("<connection> requires a dst attribute")
+	}
+	for _, ch := range strings.TrimSpace(src) {
+		if ch < '0' || ch > '9' {
+			return fmt.Errorf("<connection src=%q> must be a positive integer", src)
+		}
+	}
+	for _, ch := range strings.TrimSpace(dst) {
+		if ch < '0' || ch > '9' {
+			return fmt.Errorf("<connection dst=%q> must be a positive integer", dst)
 		}
 	}
 	return nil

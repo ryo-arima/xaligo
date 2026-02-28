@@ -8,6 +8,7 @@ import (
 	"github.com/ryo-arima/xaligo/internal/config"
 	"github.com/ryo-arima/xaligo/internal/excalidraw"
 	"github.com/ryo-arima/xaligo/internal/layout"
+	"github.com/ryo-arima/xaligo/internal/model"
 	"github.com/ryo-arima/xaligo/internal/parser"
 	"github.com/spf13/cobra"
 )
@@ -49,10 +50,18 @@ func RunRender(inputPath, outputPath string) error {
 		return fmt.Errorf("build layout: %w", err)
 	}
 
+	// Extract <connection> nodes from the DSL root (they are meta-nodes, not layout boxes).
+	var connections []*model.Node
+	for _, child := range doc.Root.Children {
+		if child.Tag == "connection" {
+			connections = append(connections, child)
+		}
+	}
+
 	cfg := config.New()
 	svgGroupDir := filepath.Join(cfg.AssetDir_, "Architecture-Group-Icons")
 
-	out, err := excalidraw.BuildJSON(root, svgGroupDir, cfg.SvcCatalogCSV, cfg.ProjectRoot, cfg.ItemIconSize)
+	out, err := excalidraw.BuildJSON(root, svgGroupDir, cfg.SvcCatalogCSV, cfg.ProjectRoot, cfg.ItemIconSize, connections)
 	if err != nil {
 		return fmt.Errorf("build excalidraw JSON: %w", err)
 	}

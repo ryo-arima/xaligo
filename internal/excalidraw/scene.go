@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/ryo-arima/xaligo/internal/layout"
+	"github.com/ryo-arima/xaligo/internal/model"
 	"github.com/ryo-arima/xaligo/internal/repository"
 )
 
@@ -134,7 +135,8 @@ func svgDataURL(path string) (string, error) {
 // projectRoot:  project root directory (used to resolve rel_path from catalog)
 // itemIconSize: default maximum icon size (px) for <item> elements;
 //               the <frame item-size="N"> attribute overrides this value.
-func BuildJSON(root *layout.Box, svgGroupDir string, catalogCSV string, projectRoot string, itemIconSize float64) ([]byte, error) {
+// connections:  <connection> nodes extracted from the DSL (may be nil).
+func BuildJSON(root *layout.Box, svgGroupDir string, catalogCSV string, projectRoot string, itemIconSize float64, connections []*model.Node) ([]byte, error) {
 	if root == nil {
 		return nil, fmt.Errorf("root layout is nil")
 	}
@@ -171,10 +173,19 @@ func BuildJSON(root *layout.Box, svgGroupDir string, catalogCSV string, projectR
 		}
 	}
 
+	// itemImgRects / itemLblRects / itemImgIDs / itemLblIDs:
+	// catalog ID → bounding rect (x,y,w,h) and element ID of the image / label elements.
+	// Populated during renderItemGrid → renderIconAt, used for edge-based connections.
+	itemImgRects := map[int][4]float64{}
+	itemLblRects := map[int][4]float64{}
+	itemImgIDs   := map[int]string{}
+	itemLblIDs   := map[int]string{}
+
 	walk(root, &elements, files, svgGroupDir, catalogCSV, projectRoot, r, root, itemGroups, ancestorBoxes)
 	for ancID, items := range itemGroups {
-		renderItemGrid(items, ancestorBoxes[ancID], &elements, files, catalogCSV, projectRoot, itemIconSize, r)
+		renderItemGrid(items, ancestorBoxes[ancID], &elements, files, catalogCSV, projectRoot, itemIconSize, r, itemImgRects, itemLblRects, itemImgIDs, itemLblIDs)
 	}
+	renderConnections(connections, itemImgRects, itemLblRects, itemImgIDs, itemLblIDs, &elements, r)
 
 	out := file{
 		Type:    "excalidraw",
@@ -479,7 +490,7 @@ func textWidth(s string, charW float64) float64 {
 // as a single horizontal row (no line wrap) within that ancestor's bounds.
 // Items are placed below the group header row (GroupTopInset) so they don't
 // overlap the ancestor's label or border icon.
-func renderItemGrid(items []*layout.Box, ancestor *layout.Box, elements *[]map[string]any, files map[string]any, catalogCSV string, projectRoot string, maxSize float64, r *rand.Rand) {
+func renderItemGrid(items []*layout.Box, ancestor *layout.Box, elements *[]map[string]any, files map[string]any, catalogCSV string, projectRoot string, maxSize float64, r *rand.Rand, itemImgRects map[int][4]float64, itemLblRects map[int][4]float64, itemImgIDs map[int]string, itemLblIDs map[int]string) {
 	if catalogCSV == "" || len(items) == 0 || ancestor == nil {
 		return
 	}
@@ -516,12 +527,14 @@ func renderItemGrid(items []*layout.Box, ancestor *layout.Box, elements *[]map[s
 	iconY := ancestor.Y + itemGap
 	for i, item := range items {
 		iconX := itemStartX + float64(i)*(iconSize+itemGap)
-		renderIconAt(item.ID, item.Attrs["id"], iconX, iconY, iconSize, elements, files, catalogCSV, projectRoot, r)
+		renderIconAt(item.ID, item.Attrs["id"], iconX, iconY, iconSize, elements, files, catalogCSV, projectRoot, r, itemImgRects, itemLblRects, itemImgIDs, itemLblIDs)
 	}
 }
 
 // renderIconAt draws a single service icon (image + label) at an explicit position.
-func renderIconAt(boxID, idAttr string, iconX, iconY, iconSize float64, elements *[]map[string]any, files map[string]any, catalogCSV string, projectRoot string, r *rand.Rand) {
+// itemImgRects/itemLblRects/itemImgIDs/itemLblIDs are populated with the bounding rect
+// and element ID of the image and label elements, keyed by the catalog integer ID.
+func renderIconAt(boxID, idAttr string, iconX, iconY, iconSize float64, elements *[]map[string]any, files map[string]any, catalogCSV string, projectRoot string, r *rand.Rand, itemImgRects map[int][4]float64, itemLblRects map[int][4]float64, itemImgIDs map[int]string, itemLblIDs map[int]string) {
 	if catalogCSV == "" {
 		return
 	}
@@ -564,6 +577,11 @@ func renderIconAt(boxID, idAttr string, iconX, iconY, iconSize float64, elements
 	}
 	seed := r.Intn(99999999)
 	iconID := fmt.Sprintf("%s-item", boxID)
+	// Record bounding rects and element IDs for edge-based connection arrows.
+	if itemImgRects != nil {
+		itemImgRects[id] = [4]float64{iconX, iconY, iconSize, iconSize}
+		itemImgIDs[id] = iconID
+	}
 	*elements = append(*elements, map[string]any{
 		"id": iconID, "type": "image",
 		"x": iconX, "y": iconY,
@@ -580,6 +598,11 @@ func renderIconAt(boxID, idAttr string, iconX, iconY, iconSize float64, elements
 	})
 	label := itemShortName(ce.Service)
 	labelY := iconY + iconSize + 4
+	// Record label bounding rect for bottom-side connection binding.
+	if itemLblRects != nil {
+		itemLblRects[id] = [4]float64{iconX, labelY, iconSize, itemMaxSize + 2}
+		itemLblIDs[id] = iconID + "-lbl"
+	}
 	textSeed := r.Intn(99999999)
 	*elements = append(*elements, map[string]any{
 		"id": iconID + "-lbl", "type": "text",
@@ -598,4 +621,200 @@ func renderIconAt(boxID, idAttr string, iconX, iconY, iconSize float64, elements
 		"textAlign": "center", "verticalAlign": "top",
 		"containerId": nil, "lineHeight": 1.25,
 	})
+}
+
+// connectionSide determines which edge exits src (srcSide) and enters dst (dstSide)
+// based on the direction between their center points.
+// Returns "top", "bottom", "left", or "right".
+func connectionSide(srcCx, srcCy, dstCx, dstCy float64) (srcSide, dstSide string) {
+	dx := dstCx - srcCx
+	dy := dstCy - srcCy
+	if math.Abs(dx) >= math.Abs(dy) {
+		if dx >= 0 {
+			return "right", "left"
+		}
+		return "left", "right"
+	}
+	if dy >= 0 {
+		return "bottom", "top"
+	}
+	return "top", "bottom"
+}
+
+// rectEdgePoint returns the midpoint of the named edge of a rectangle.
+// rect = [x, y, w, h]; side is "top", "bottom", "left", or "right".
+func rectEdgePoint(rect [4]float64, side string) [2]float64 {
+	x, y, w, h := rect[0], rect[1], rect[2], rect[3]
+	cx := x + w/2
+	cy := y + h/2
+	switch side {
+	case "top":
+		return [2]float64{cx, y}
+	case "bottom":
+		return [2]float64{cx, y + h}
+	case "left":
+		return [2]float64{x, cy}
+	default: // "right"
+		return [2]float64{x + w, cy}
+	}
+}
+
+// fixedPointForSide returns the normalized [x, y] fixedPoint on an element's bounding box
+// that corresponds to the given side. This matches Excalidraw's binding coordinate system:
+// [0,0]=top-left, [1,1]=bottom-right; each side midpoint:
+//
+//	top=[0.5,0], bottom=[0.5,1], left=[0,0.5], right=[1,0.5]
+func fixedPointForSide(side string) [2]float64 {
+	switch side {
+	case "top":
+		return [2]float64{0.5, 0}
+	case "bottom":
+		return [2]float64{0.5, 1}
+	case "left":
+		return [2]float64{0, 0.5}
+	default: // "right"
+		return [2]float64{1, 0.5}
+	}
+}
+
+// renderConnections generates elbowed arrow elements for each <connection> node and
+// updates the boundElements of the bound source/destination elements — required by
+// Excalidraw so that the application recognises the binding relationship.
+//
+// src/dst are catalog integer IDs; the corresponding item rects and element IDs
+// must already be populated in itemImgRects/itemLblRects/itemImgIDs/itemLblIDs by renderIconAt.
+// Arrows start/end at the actual element edge; when the connection exits/enters from the
+// bottom the label text element is used instead of the image element.
+func renderConnections(connections []*model.Node, itemImgRects map[int][4]float64, itemLblRects map[int][4]float64, itemImgIDs map[int]string, itemLblIDs map[int]string, elements *[]map[string]any, r *rand.Rand) {
+	if len(connections) == 0 {
+		return
+	}
+	updated := time.Now().UnixMilli()
+
+	// boundMap accumulates the arrow binding entries that must be written back
+	// into each referenced element's boundElements array.
+	// key = element ID, value = slice of {"type":"arrow","id":<arrowID>}
+	boundMap := map[string][]map[string]any{}
+
+	for i, conn := range connections {
+		srcIDStr := strings.TrimSpace(conn.Attrs["src"])
+		dstIDStr := strings.TrimSpace(conn.Attrs["dst"])
+		srcID, err1 := strconv.Atoi(srcIDStr)
+		dstID, err2 := strconv.Atoi(dstIDStr)
+		if err1 != nil || err2 != nil {
+			fmt.Fprintf(os.Stderr, "WARNING: <connection> invalid src/dst: %v %v\n", err1, err2)
+			continue
+		}
+		srcImgRect, srcOk := itemImgRects[srcID]
+		dstImgRect, dstOk := itemImgRects[dstID]
+		if !srcOk {
+			fmt.Fprintf(os.Stderr, "WARNING: <connection src=%d>: item not found or not rendered\n", srcID)
+			continue
+		}
+		if !dstOk {
+			fmt.Fprintf(os.Stderr, "WARNING: <connection dst=%d>: item not found or not rendered\n", dstID)
+			continue
+		}
+
+		// Determine exit/entry side from image-center to image-center.
+		srcCx := srcImgRect[0] + srcImgRect[2]/2
+		srcCy := srcImgRect[1] + srcImgRect[3]/2
+		dstCx := dstImgRect[0] + dstImgRect[2]/2
+		dstCy := dstImgRect[1] + dstImgRect[3]/2
+		srcSide, dstSide := connectionSide(srcCx, srcCy, dstCx, dstCy)
+
+		// Choose element: bottom edge → label text box; other edges → image element.
+		var srcElemID string
+		var srcRect [4]float64
+		if srcSide == "bottom" {
+			if lblRect, ok := itemLblRects[srcID]; ok {
+				srcRect = lblRect
+				srcElemID = itemLblIDs[srcID]
+			} else {
+				srcRect = srcImgRect
+				srcElemID = itemImgIDs[srcID]
+			}
+		} else {
+			srcRect = srcImgRect
+			srcElemID = itemImgIDs[srcID]
+		}
+
+		var dstElemID string
+		var dstRect [4]float64
+		if dstSide == "bottom" {
+			if lblRect, ok := itemLblRects[dstID]; ok {
+				dstRect = lblRect
+				dstElemID = itemLblIDs[dstID]
+			} else {
+				dstRect = dstImgRect
+				dstElemID = itemImgIDs[dstID]
+			}
+		} else {
+			dstRect = dstImgRect
+			dstElemID = itemImgIDs[dstID]
+		}
+
+		srcEdge := rectEdgePoint(srcRect, srcSide)
+		dstEdge := rectEdgePoint(dstRect, dstSide)
+		dx := dstEdge[0] - srcEdge[0]
+		dy := dstEdge[1] - srcEdge[1]
+
+		srcFP := fixedPointForSide(srcSide)
+		dstFP := fixedPointForSide(dstSide)
+
+		seed := r.Intn(99999999)
+		connID := fmt.Sprintf("conn-%d-%d-%d", srcID, dstID, i)
+
+		*elements = append(*elements, map[string]any{
+			"id": connID, "type": "arrow",
+			"x": srcEdge[0], "y": srcEdge[1],
+			"width": math.Abs(dx), "height": math.Abs(dy),
+			"angle": 0,
+			"strokeColor": "#1e1e1e", "backgroundColor": "transparent",
+			"fillStyle": "solid", "strokeWidth": 2, "strokeStyle": "solid",
+			"roughness": 0, "opacity": 100,
+			"groupIds": []string{}, "roundness": map[string]any{"type": 2},
+			"seed": seed, "version": 1, "versionNonce": seed,
+			"isDeleted": false, "boundElements": nil,
+			"updated": updated, "link": nil, "locked": false, "frameId": nil,
+			"points":             [][]float64{{0, 0}, {dx, dy}},
+			"lastCommittedPoint": nil,
+			"startBinding": map[string]any{
+				"elementId":  srcElemID,
+				"focus":      0.0,
+				"gap":        5.0,
+				"fixedPoint": []float64{srcFP[0], srcFP[1]},
+			},
+			"endBinding": map[string]any{
+				"elementId":  dstElemID,
+				"focus":      0.0,
+				"gap":        5.0,
+				"fixedPoint": []float64{dstFP[0], dstFP[1]},
+			},
+			"startArrowhead": nil,
+			"endArrowhead":   "arrow",
+			"elbowed":        true,
+		})
+
+		// Register this arrow in boundMap for both endpoints.
+		entry := map[string]any{"type": "arrow", "id": connID}
+		boundMap[srcElemID] = append(boundMap[srcElemID], entry)
+		boundMap[dstElemID] = append(boundMap[dstElemID], entry)
+	}
+
+	// Second pass: write back boundElements into each referenced element so that
+	// Excalidraw recognises the binding relationship.
+	if len(boundMap) == 0 {
+		return
+	}
+	for idx := range *elements {
+		elem := (*elements)[idx]
+		id, _ := elem["id"].(string)
+		if entries, ok := boundMap[id]; ok {
+			// Merge with any existing bound elements (e.g. text containerId refs).
+			existing, _ := elem["boundElements"].([]map[string]any)
+			elem["boundElements"] = append(existing, entries...)
+			(*elements)[idx] = elem
+		}
+	}
 }

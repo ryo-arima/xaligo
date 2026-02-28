@@ -67,6 +67,19 @@ func Build(doc model.Document) (*Box, error) {
 	return root, nil
 }
 
+// layoutKids returns node's children that participate in layout,
+// filtering out meta-nodes such as <connection> which are handled separately.
+func layoutKids(node *model.Node) []*model.Node {
+	var kids []*model.Node
+	for _, c := range node.Children {
+		if c.Tag == "connection" {
+			continue
+		}
+		kids = append(kids, c)
+	}
+	return kids
+}
+
 func layoutNode(node *model.Node, target *Box, x, y, w, h float64) {
 	target.Attrs = node.Attrs
 	pad, mar := parseClassSpacing(node.Attr("class"))
@@ -105,10 +118,11 @@ func layoutNode(node *model.Node, target *Box, x, y, w, h float64) {
 	default:
 		// AWS グループタグおよびその他の未知タグ:
 		// 子要素があればコンテナ, なければリーフとして扱う。
-		if len(node.Children) > 0 {
+		kids := layoutKids(node)
+		if len(kids) > 0 {
 			// <item> のみの親はグループアイコン/ラベルがないので topInset を適用しない
 			allItems := true
-			for _, ch := range node.Children {
+			for _, ch := range kids {
 				if ch.Tag != "item" {
 					allItems = false
 					break
@@ -138,7 +152,8 @@ func layoutNode(node *model.Node, target *Box, x, y, w, h float64) {
 }
 
 func layoutStack(node *model.Node, target *Box, x, y, w, h float64) {
-	if len(node.Children) == 0 {
+	children := layoutKids(node)
+	if len(children) == 0 {
 		return
 	}
 	gap := attrFloat(node.Attr("gap"), 16)
@@ -148,15 +163,15 @@ func layoutStack(node *model.Node, target *Box, x, y, w, h float64) {
 	// row 属性は flex-grow スタイルの高さ比率。デフォルト 1.0 (均等)。
 	totalMarginH := 0.0
 	totalRow := 0.0
-	for _, child := range node.Children {
+	for _, child := range children {
 		_, childMar := parseClassSpacing(child.Attr("class"))
 		totalMarginH += childMar.Top + childMar.Bottom
 		totalRow += attrFloat(child.Attr("row"), 1.0)
 	}
-	availH := h - gap*float64(len(node.Children)-1) - totalMarginH
+	availH := h - gap*float64(len(children)-1) - totalMarginH
 
 	curY := y
-	for i, child := range node.Children {
+	for i, child := range children {
 		_, childMar := parseClassSpacing(child.Attr("class"))
 		row := attrFloat(child.Attr("row"), 1.0)
 		// 子への割り当て = 比率に応じた content 高さ + その子自身の上下 margin
@@ -173,24 +188,25 @@ func layoutStack(node *model.Node, target *Box, x, y, w, h float64) {
 // Each child's width share is determined by its `col` attribute (default 1.0).
 // This mirrors layoutStack but in the horizontal direction.
 func layoutFlexH(node *model.Node, target *Box, x, y, w, h float64) {
-	if len(node.Children) == 0 {
+	children := layoutKids(node)
+	if len(children) == 0 {
 		return
 	}
 	gap := attrFloat(node.Attr("gap"), 16)
 
-	// 各子要素の water 平 margin を事前集計し利用可能幅を算出する。
+	// 各子要素の水平 margin を事前集計し利用可能幅を算出する。
 	// col 属性は flex-grow スタイルの幅比率。デフォルト 1.0 (均等)。
 	totalMarginW := 0.0
 	totalCol := 0.0
-	for _, child := range node.Children {
+	for _, child := range children {
 		_, childMar := parseClassSpacing(child.Attr("class"))
 		totalMarginW += childMar.Left + childMar.Right
 		totalCol += attrFloat(child.Attr("col"), 1.0)
 	}
-	availW := w - gap*float64(len(node.Children)-1) - totalMarginW
+	availW := w - gap*float64(len(children)-1) - totalMarginW
 
 	curX := x
-	for i, child := range node.Children {
+	for i, child := range children {
 		_, childMar := parseClassSpacing(child.Attr("class"))
 		col := attrFloat(child.Attr("col"), 1.0)
 		// 子への割り当て = 比率に応じた content 幅 + その子自身の左右 margin
@@ -204,23 +220,24 @@ func layoutFlexH(node *model.Node, target *Box, x, y, w, h float64) {
 }
 
 func layoutRow(node *model.Node, target *Box, x, y, w, h float64) {
-	if len(node.Children) == 0 {
+	children := layoutKids(node)
+	if len(children) == 0 {
 		return
 	}
 	gap := attrFloat(node.Attr("gap"), 16)
 
 	// 各子要素の水平 margin を事前に読み取り、幅方向の合計を算出する。
 	totalMarginW := 0.0
-	for _, child := range node.Children {
+	for _, child := range children {
 		_, childMar := parseClassSpacing(child.Attr("class"))
 		totalMarginW += childMar.Left + childMar.Right
 	}
-	remainingW := w - gap*float64(len(node.Children)-1) - totalMarginW
+	remainingW := w - gap*float64(len(children)-1) - totalMarginW
 	curX := x
 
-	for i, child := range node.Children {
+	for i, child := range children {
 		_, childMar := parseClassSpacing(child.Attr("class"))
-		span := attrFloat(child.Attr("span"), 12/float64(len(node.Children)))
+		span := attrFloat(child.Attr("span"), 12/float64(len(children)))
 		cw := remainingW*(span/12.0) + childMar.Left + childMar.Right
 		cb := &Box{ID: childID(target.ID, i), Tag: child.Tag, Label: labelOf(child)}
 		layoutNode(child, cb, curX, y, cw, h)
@@ -235,7 +252,8 @@ func layoutRow(node *model.Node, target *Box, x, y, w, h float64) {
 // (highest StaggerDepth first = rendered behind, depth 0 last = on top).
 // Falls back to layoutStack when fewer than 2 children.
 func layoutStagger(node *model.Node, target *Box, x, y, w, h float64) {
-	n := len(node.Children)
+	children := layoutKids(node)
+	n := len(children)
 	if n < 2 {
 		layoutStack(node, target, x, y, w, h)
 		return
@@ -251,7 +269,7 @@ func layoutStagger(node *model.Node, target *Box, x, y, w, h float64) {
 	}
 	// Render back-to-front: highest depth first → behind, depth 0 last → front.
 	for i := n - 1; i >= 0; i-- {
-		child := node.Children[i]
+		child := children[i]
 		cX := x + float64(i)*staggerOffset
 		cY := y + float64(i)*staggerOffset
 		cb := &Box{
