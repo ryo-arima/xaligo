@@ -10,6 +10,14 @@ import (
 
 const spacingUnit = 8
 
+// MinBoxWidth / MinBoxHeight are the smallest dimensions at which a box
+// can be meaningfully rendered. layoutStack and layoutRow clamp child
+// sizes to these values so boxes are never invisible.
+const (
+	MinBoxWidth  = 60.0
+	MinBoxHeight = 48.0
+)
+
 // defaultGroupInset is the automatic padding applied to container nodes
 // (AWS group tags and unknown tags with children) when no explicit class
 // padding is specified.  The top inset reserves room for the 32 px icon +
@@ -17,17 +25,28 @@ const spacingUnit = 8
 const (
 	defaultGroupTopInset  = 44.0
 	defaultGroupSideInset = 12.0
+
+	// GroupTopInset / GroupSideInset are the exported equivalents used by
+	// the excalidraw renderer to position item icons below the header row.
+	GroupTopInset  = defaultGroupTopInset
+	GroupSideInset = defaultGroupSideInset
 )
 
 type Box struct {
 	ID       string
 	Tag      string
 	Label    string
+	Attrs    map[string]string // raw DSL attributes (e.g. id for <item>)
 	X        float64
 	Y        float64
 	W        float64
 	H        float64
 	Children []*Box
+
+	// Staggered layout fields (set by layoutStagger)
+	StaggerDepth int  // 0 = front, >0 = background depth
+	IsStaggerBg  bool // true = background layer → skip rendering children
+	InStagger    bool // true = this box participates in a staggered group
 }
 
 type Spacing struct {
@@ -49,37 +68,69 @@ func Build(doc model.Document) (*Box, error) {
 }
 
 func layoutNode(node *model.Node, target *Box, x, y, w, h float64) {
+	target.Attrs = node.Attrs
 	pad, mar := parseClassSpacing(node.Attr("class"))
-	innerX := x + mar.Left + pad.Left
-	innerY := y + mar.Top + pad.Top
-	innerW := w - mar.Left - mar.Right - pad.Left - pad.Right
-	innerH := h - mar.Top - mar.Bottom - pad.Top - pad.Bottom
 
-	target.X = x + mar.Left
-	target.Y = y + mar.Top
-	target.W = w - mar.Left - mar.Right
-	target.H = h - mar.Top - mar.Bottom
+	// margin は親から渡された割り当て領域を削る (sibling spacing)
+	boxX := x + mar.Left
+	boxY := y + mar.Top
+	boxW := w - mar.Left - mar.Right
+	boxH := h - mar.Top - mar.Bottom
+	target.X = boxX
+	target.Y = boxY
+	target.W = boxW
+	target.H = boxH
+
+	// padding は box 内側の余白 (子要素の配置開始点)
+	innerX := boxX + pad.Left
+	innerY := boxY + pad.Top
+	innerW := boxW - pad.Left - pad.Right
+	innerH := boxH - pad.Top - pad.Bottom
 
 	switch node.Tag {
 	case "frame", "container":
-		layoutStack(node, target, innerX, innerY, innerW, innerH)
+		if node.Attr("layout") == "horizontal" {
+			layoutFlexH(node, target, innerX, innerY, innerW, innerH)
+		} else {
+			layoutStack(node, target, innerX, innerY, innerW, innerH)
+		}
 	case "row":
 		layoutRow(node, target, innerX, innerY, innerW, innerH)
 	case "col":
-		layoutStack(node, target, innerX, innerY, innerW, innerH)
-	default:
-		// AWS group tags (vpc, region, aws-cloud, etc.) and other unknown tags:
-		// if they have children act as a container, otherwise as a leaf.
-		if len(node.Children) > 0 {
-			// If no explicit padding was given via class="...", apply the default
-			// group inset so children don't overlap the parent's border/icon area.
-			if pad == (Spacing{}) {
-				innerX = target.X + defaultGroupSideInset
-				innerY = target.Y + defaultGroupTopInset
-				innerW = target.W - defaultGroupSideInset*2
-				innerH = target.H - defaultGroupTopInset - defaultGroupSideInset
-			}
+		if node.Attr("layout") == "horizontal" {
+			layoutFlexH(node, target, innerX, innerY, innerW, innerH)
+		} else {
 			layoutStack(node, target, innerX, innerY, innerW, innerH)
+		}
+	default:
+		// AWS グループタグおよびその他の未知タグ:
+		// 子要素があればコンテナ, なければリーフとして扱う。
+		if len(node.Children) > 0 {
+			// <item> のみの親はグループアイコン/ラベルがないので topInset を適用しない
+			allItems := true
+			for _, ch := range node.Children {
+				if ch.Tag != "item" {
+					allItems = false
+					break
+				}
+			}
+			if allItems {
+				layoutRow(node, target, innerX, innerY, innerW, innerH)
+				break
+			}
+			// グループ inset は常に適用。ユーザー指定 padding はその上に加算する。
+			// これにより class="pa-2" でヘッダー行と子要素が重なることを防ぐ。
+			gInnerX := boxX + defaultGroupSideInset + pad.Left
+			gInnerY := boxY + defaultGroupTopInset + pad.Top
+			gInnerW := boxW - defaultGroupSideInset*2 - pad.Left - pad.Right
+			gInnerH := boxH - defaultGroupTopInset - defaultGroupSideInset - pad.Top - pad.Bottom
+			if node.Attr("layout") == "staggered" {
+				layoutStagger(node, target, gInnerX, gInnerY, gInnerW, gInnerH)
+			} else if node.Attr("layout") == "horizontal" {
+				layoutFlexH(node, target, gInnerX, gInnerY, gInnerW, gInnerH)
+			} else {
+				layoutStack(node, target, gInnerX, gInnerY, gInnerW, gInnerH)
+			}
 		} else {
 			layoutLeaf(node, target, innerX, innerY, innerW, innerH)
 		}
@@ -91,13 +142,64 @@ func layoutStack(node *model.Node, target *Box, x, y, w, h float64) {
 		return
 	}
 	gap := attrFloat(node.Attr("gap"), 16)
-	childH := (h - gap*float64(len(node.Children)-1)) / float64(len(node.Children))
+
+	// 各子要素の margin を事前に読み取り、縦方向の余白合計を算出する。
+	// これにより margin が sibling 間スペースとして機能する (CSS ライク)。
+	// row 属性は flex-grow スタイルの高さ比率。デフォルト 1.0 (均等)。
+	totalMarginH := 0.0
+	totalRow := 0.0
+	for _, child := range node.Children {
+		_, childMar := parseClassSpacing(child.Attr("class"))
+		totalMarginH += childMar.Top + childMar.Bottom
+		totalRow += attrFloat(child.Attr("row"), 1.0)
+	}
+	availH := h - gap*float64(len(node.Children)-1) - totalMarginH
+
 	curY := y
 	for i, child := range node.Children {
+		_, childMar := parseClassSpacing(child.Attr("class"))
+		row := attrFloat(child.Attr("row"), 1.0)
+		// 子への割り当て = 比率に応じた content 高さ + その子自身の上下 margin
+		childH := availH * (row / totalRow)
+		alloc := childH + childMar.Top + childMar.Bottom
 		cb := &Box{ID: childID(target.ID, i), Tag: child.Tag, Label: labelOf(child)}
-		layoutNode(child, cb, x, curY, w, childH)
+		layoutNode(child, cb, x, curY, w, alloc)
 		target.Children = append(target.Children, cb)
-		curY += childH + gap
+		curY += alloc + gap
+	}
+}
+
+// layoutFlexH lays out children horizontally with free ratio weights.
+// Each child's width share is determined by its `col` attribute (default 1.0).
+// This mirrors layoutStack but in the horizontal direction.
+func layoutFlexH(node *model.Node, target *Box, x, y, w, h float64) {
+	if len(node.Children) == 0 {
+		return
+	}
+	gap := attrFloat(node.Attr("gap"), 16)
+
+	// 各子要素の water 平 margin を事前集計し利用可能幅を算出する。
+	// col 属性は flex-grow スタイルの幅比率。デフォルト 1.0 (均等)。
+	totalMarginW := 0.0
+	totalCol := 0.0
+	for _, child := range node.Children {
+		_, childMar := parseClassSpacing(child.Attr("class"))
+		totalMarginW += childMar.Left + childMar.Right
+		totalCol += attrFloat(child.Attr("col"), 1.0)
+	}
+	availW := w - gap*float64(len(node.Children)-1) - totalMarginW
+
+	curX := x
+	for i, child := range node.Children {
+		_, childMar := parseClassSpacing(child.Attr("class"))
+		col := attrFloat(child.Attr("col"), 1.0)
+		// 子への割り当て = 比率に応じた content 幅 + その子自身の左右 margin
+		childW := availW * (col / totalCol)
+		alloc := childW + childMar.Left + childMar.Right
+		cb := &Box{ID: childID(target.ID, i), Tag: child.Tag, Label: labelOf(child)}
+		layoutNode(child, cb, curX, y, alloc, h)
+		target.Children = append(target.Children, cb)
+		curX += alloc + gap
 	}
 }
 
@@ -106,16 +208,62 @@ func layoutRow(node *model.Node, target *Box, x, y, w, h float64) {
 		return
 	}
 	gap := attrFloat(node.Attr("gap"), 16)
-	remainingW := w - gap*float64(len(node.Children)-1)
+
+	// 各子要素の水平 margin を事前に読み取り、幅方向の合計を算出する。
+	totalMarginW := 0.0
+	for _, child := range node.Children {
+		_, childMar := parseClassSpacing(child.Attr("class"))
+		totalMarginW += childMar.Left + childMar.Right
+	}
+	remainingW := w - gap*float64(len(node.Children)-1) - totalMarginW
 	curX := x
 
 	for i, child := range node.Children {
+		_, childMar := parseClassSpacing(child.Attr("class"))
 		span := attrFloat(child.Attr("span"), 12/float64(len(node.Children)))
-		cw := remainingW * (span / 12.0)
+		cw := remainingW*(span/12.0) + childMar.Left + childMar.Right
 		cb := &Box{ID: childID(target.ID, i), Tag: child.Tag, Label: labelOf(child)}
 		layoutNode(child, cb, curX, y, cw, h)
 		target.Children = append(target.Children, cb)
 		curX += cw + gap
+	}
+}
+
+// layoutStagger places children in staggered depth-overlap mode.
+// Each child is offset staggerOffset px right-and-down from the previous.
+// Children are appended to target.Children in back-to-front render order
+// (highest StaggerDepth first = rendered behind, depth 0 last = on top).
+// Falls back to layoutStack when fewer than 2 children.
+func layoutStagger(node *model.Node, target *Box, x, y, w, h float64) {
+	n := len(node.Children)
+	if n < 2 {
+		layoutStack(node, target, x, y, w, h)
+		return
+	}
+	const staggerOffset = 16.0
+	childW := w - staggerOffset*float64(n-1)
+	childH := h - staggerOffset*float64(n-1)
+	if childW < MinBoxWidth {
+		childW = MinBoxWidth
+	}
+	if childH < MinBoxHeight {
+		childH = MinBoxHeight
+	}
+	// Render back-to-front: highest depth first → behind, depth 0 last → front.
+	for i := n - 1; i >= 0; i-- {
+		child := node.Children[i]
+		cX := x + float64(i)*staggerOffset
+		cY := y + float64(i)*staggerOffset
+		cb := &Box{
+			ID:           childID(target.ID, i),
+			Tag:          child.Tag,
+			Label:        labelOf(child),
+			StaggerDepth: i,
+			IsStaggerBg:  i > 0,
+			InStagger:    true,
+		}
+		layoutNode(child, cb, cX, cY, childW, childH)
+		target.Children = append(target.Children, cb)
 	}
 }
 
@@ -162,6 +310,24 @@ func parseClassSpacing(class string) (Spacing, Spacing) {
 		case strings.HasPrefix(tok, "ma-"):
 			v := spacingValue(tok[3:])
 			mar = Spacing{Top: v, Right: v, Bottom: v, Left: v}
+		// 軸別一括: px=左右, py=上下
+		case strings.HasPrefix(tok, "px-"):
+			v := spacingValue(tok[3:])
+			pad.Left = v
+			pad.Right = v
+		case strings.HasPrefix(tok, "py-"):
+			v := spacingValue(tok[3:])
+			pad.Top = v
+			pad.Bottom = v
+		case strings.HasPrefix(tok, "mx-"):
+			v := spacingValue(tok[3:])
+			mar.Left = v
+			mar.Right = v
+		case strings.HasPrefix(tok, "my-"):
+			v := spacingValue(tok[3:])
+			mar.Top = v
+			mar.Bottom = v
+		// 個別方向
 		case strings.HasPrefix(tok, "pt-"):
 			pad.Top = spacingValue(tok[3:])
 		case strings.HasPrefix(tok, "pr-"):

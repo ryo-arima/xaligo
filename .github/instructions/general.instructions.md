@@ -99,6 +99,8 @@ legend:
   offset_y:  0
   icon_size: 32
   font_size: 12
+item:
+  icon_size: 48   # <item> アイコンの最大サイズ (px) デフォルト 48。<frame item-size="N"> で上書き可能
 ```
 
 ## CLI コマンド一覧

@@ -29,6 +29,11 @@ func Parse(r io.Reader) (model.Document, error) {
 			for _, a := range t.Attr {
 				node.Attrs[a.Name.Local] = a.Value
 			}
+			if node.Tag == "item" {
+				if err := validateItemNode(node); err != nil {
+					return model.Document{}, fmt.Errorf("parse <item>: %w", err)
+				}
+			}
 			if len(stack) == 0 {
 				root = node
 			} else {
@@ -65,4 +70,21 @@ func Parse(r io.Reader) (model.Document, error) {
 	}
 
 	return model.Document{Root: root}, nil
+}
+
+// validateItemNode ensures <item> carries exactly one numeric id attribute.
+func validateItemNode(node *model.Node) error {
+	id, ok := node.Attrs["id"]
+	if !ok || strings.TrimSpace(id) == "" {
+		return fmt.Errorf("<item> requires an id attribute")
+	}
+	if strings.Contains(id, ",") {
+		return fmt.Errorf("<item id=%q> must contain a single ID; use separate <item> tags for multiple services", id)
+	}
+	for _, ch := range strings.TrimSpace(id) {
+		if ch < '0' || ch > '9' {
+			return fmt.Errorf("<item id=%q> must be a positive integer", id)
+		}
+	}
+	return nil
 }

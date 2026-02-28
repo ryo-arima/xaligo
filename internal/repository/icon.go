@@ -120,6 +120,61 @@ func LoadFromCSVByID(csvPath string, id int, name string) (string, string, error
 	return "", "", fmt.Errorf("catalog ID %d not found in CSV", id)
 }
 
+// CatalogEntry holds resolved data for one row of service-catalog.csv.
+type CatalogEntry struct {
+	ID       int
+	Category string
+	Service  string
+	SVGFile  string
+	RelPath  string
+	DataURL  string
+}
+
+// LookupCatalogByID finds the first entry with the given ID in service-catalog.csv
+// and returns its data including the pre-encoded SVG data URL.
+func LookupCatalogByID(csvPath string, id int) (CatalogEntry, error) {
+	f, err := os.Open(csvPath)
+	if err != nil {
+		return CatalogEntry{}, fmt.Errorf("open catalog CSV %s: %w", csvPath, err)
+	}
+	defer f.Close()
+	r := csv.NewReader(f)
+	r.Comment = '#'
+	r.FieldsPerRecord = -1
+	for {
+		rec, err := r.Read()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			continue
+		}
+		if len(rec) < 6 {
+			continue
+		}
+		rowID, err := strconv.Atoi(strings.TrimSpace(rec[0]))
+		if err != nil || rowID != id {
+			continue
+		}
+		raw := strings.TrimSpace(rec[5])
+		var dataURL string
+		if strings.HasPrefix(raw, "data:") {
+			dataURL = raw
+		} else if raw != "" {
+			dataURL = "data:image/svg+xml;base64," + raw
+		}
+		return CatalogEntry{
+			ID:       rowID,
+			Category: strings.TrimSpace(rec[1]),
+			Service:  strings.TrimSpace(rec[2]),
+			SVGFile:  strings.TrimSpace(rec[3]),
+			RelPath:  strings.TrimSpace(rec[4]),
+			DataURL:  dataURL,
+		}, nil
+	}
+	return CatalogEntry{}, fmt.Errorf("catalog ID %d not found", id)
+}
+
 var svgFillRe = regexp.MustCompile(`(?i)fill[=:]["']?(#[0-9a-fA-F]{3,8}|[a-zA-Z]+)`)
 
 // SVGBGColor extracts the dominant fill colour from an SVG data URL.

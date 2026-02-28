@@ -174,6 +174,7 @@ type xalBuilder struct {
 	sb          strings.Builder
 	startMode   string
 	spacingMode string
+	azLayout    string // "grid" or "staggered"
 }
 
 func (b *xalBuilder) ind(level int) string {
@@ -182,6 +183,16 @@ func (b *xalBuilder) ind(level int) string {
 
 func (b *xalBuilder) group(tag, title string, level int, fn func()) {
 	b.sb.WriteString(fmt.Sprintf("%s<%s title=%q>\n", b.ind(level), tag, title))
+	fn()
+	b.sb.WriteString(fmt.Sprintf("%s</%s>\n", b.ind(level), tag))
+}
+
+func (b *xalBuilder) groupAttrs(tag, title, extraAttrs string, level int, fn func()) {
+	if extraAttrs != "" {
+		b.sb.WriteString(fmt.Sprintf("%s<%s title=%q %s>\n", b.ind(level), tag, title, extraAttrs))
+	} else {
+		b.sb.WriteString(fmt.Sprintf("%s<%s title=%q>\n", b.ind(level), tag, title))
+	}
 	fn()
 	b.sb.WriteString(fmt.Sprintf("%s</%s>\n", b.ind(level), tag))
 }
@@ -219,7 +230,7 @@ func (b *xalBuilder) many(level, n int, fn func(i, level int)) {
 }
 
 func buildXAL(W, H, nClouds, nAccounts, nRegions, nAZs int, azLayout string, nSubnets int, spacingMode, startMode string) string {
-	b := &xalBuilder{startMode: startMode, spacingMode: spacingMode}
+	b := &xalBuilder{startMode: startMode, spacingMode: spacingMode, azLayout: azLayout}
 
 	b.sb.WriteString(fmt.Sprintf(
 		"<!-- xaligo generate xal: clouds=%d accounts=%d regions=%d azs=%d az-layout=%s subnets=%d spacing=%s start=%s -->\n",
@@ -236,7 +247,11 @@ func buildXAL(W, H, nClouds, nAccounts, nRegions, nAZs int, azLayout string, nSu
 				b.group("aws-account", fmt.Sprintf("Account %d", ai+1), level, func() {
 					b.many(level+1, nRegions, func(ri, level int) {
 						b.group("region", fmt.Sprintf("Region %d", ri+1), level, func() {
-							b.group("vpc", fmt.Sprintf("VPC %d", ri+1), level+1, func() {
+							vpcAttr := ""
+							if b.azLayout == "staggered" && nAZs >= 2 {
+								vpcAttr = `layout="staggered"`
+							}
+							b.groupAttrs("vpc", fmt.Sprintf("VPC %d", ri+1), vpcAttr, level+1, func() {
 								b.many(level+2, nAZs, func(zi, level int) {
 									b.group("availability-zone", fmt.Sprintf("AZ %d", zi+1), level, func() {
 										b.many(level+1, nSubnets, func(si, level int) {

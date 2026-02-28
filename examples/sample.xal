@@ -1,12 +1,26 @@
 <!-- xaligo generate xal: clouds=1 accounts=1 regions=2 azs=2 az-layout=grid subnets=2 spacing=both start=top -->
+<!-- <item id="N"> uses service-catalog.csv catalog ID to embed an AWS service icon -->
+<!-- visible="false": hides only the component itself; children are rendered independently -->
+<!-- layout="horizontal" + col="N": horizontal flex layout with width ratios            -->
+<!-- row="N": vertical height ratio (default 1.0 = equal)                               -->
 <frame width="1122" height="794" class="pa-4">
   <aws-cloud title="AWS Cloud 1">
     <aws-account title="Account 1">
-      <region title="Region 1">
-        <vpc title="VPC 1">
+
+      <!-- Region 1: staggered AZ, vertical subnets with row height ratio -->
+      <!-- row="4" / row="1" → Region 1: 80%, Region 2: 20% -->
+      <region title="Region 1" row="4">
+        <vpc title="VPC 1" class="ml-2" layout="staggered">
           <availability-zone title="AZ 1">
-            <public-subnet title="Public Subnet 1" />
-            <private-subnet title="Private Subnet 1" />
+            <!-- row="2" gives Public Subnet twice the height of Private Subnet -->
+            <public-subnet title="Public Subnet 1" row="2">
+              <item id="1178" />
+              <item id="1189" />
+            </public-subnet>
+            <private-subnet title="Private Subnet 1" visible="false">
+              <item id="1179" />
+              <item id="1183" />
+            </private-subnet>
           </availability-zone>
           <availability-zone title="AZ 2">
             <public-subnet title="Public Subnet 1" />
@@ -14,18 +28,16 @@
           </availability-zone>
         </vpc>
       </region>
-      <region title="Region 2">
-        <vpc title="VPC 2">
-          <availability-zone title="AZ 1">
-            <public-subnet title="Public Subnet 1" />
-            <private-subnet title="Private Subnet 1" />
-          </availability-zone>
-          <availability-zone title="AZ 2">
-            <public-subnet title="Public Subnet 1" />
-            <private-subnet title="Private Subnet 1" />
-          </availability-zone>
+
+      <!-- Region 2: horizontal VPC layout — Public Subnet is 2x wider than each Private Subnet -->
+      <region title="Region 2" row="1">
+        <vpc title="VPC 2" class="ml-2" layout="horizontal" gap="12">
+          <public-subnet title="Public Subnet 1" col="2" />
+          <private-subnet title="Private Subnet 1" col="1" />
+          <private-subnet title="Private Subnet 2" col="1" />
         </vpc>
       </region>
+
     </aws-account>
   </aws-cloud>
 </frame>

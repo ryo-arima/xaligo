@@ -23,18 +23,26 @@ applyTo: "**/*.xal"
 | `width` | float | `1280` | フレーム幅 (px) |
 | `height` | float | `720` | フレーム高さ (px) |
 | `class` | string | — | スペーシングクラス |
+| `layout` | string | — | `"horizontal"` を指定すると子要素を横並びに配置する |
+| `gap` | float | `16` | 子要素間の隙間 (px) |
+| `item-size` | float | `48`（設定値）| このファイル内の全 `<item>` に適用するアイコン最大サイズ (px)。`app.yaml` の `item.icon_size` よりも優先される |
 
 ## レイアウトタグ
 
 ### `<container>`
 
-子要素を **縦方向** に均等配置します (`frame` と同挙動)。
+子要素を **縦方向** に均等配置します (`frame` と同挙動)。`layout="horizontal"` を指定すると横並びになります。
 
 ```xml
 <container class="pa-4" gap="16">
   ...
 </container>
 ```
+
+| 属性 | 型 | デフォルト | 説明 |
+|---|---|---|---|
+| `layout` | string | — | `"horizontal"` で子要素を横並び配置にする |
+| `gap` | float | `16` | 子要素間の隙間 (px) |
 
 ### `<row>`
 
@@ -50,6 +58,7 @@ applyTo: "**/*.xal"
 | 属性 | 型 | デフォルト | 説明 |
 |---|---|---|---|
 | `gap` | float | `16` | 列間の隙間 (px) |
+| `border` | string | — | `"none"` を指定すると枠線を非表示にする |
 
 ### `<col>`
 
@@ -62,7 +71,7 @@ applyTo: "**/*.xal"
 
 ## リーフタグ
 
-`frame` / `container` / `row` / `col` 以外のタグはすべてリーフ要素として扱われます。
+`frame` / `container` / `row` / `col` / AWS グループタグ / `item` 以外のタグはすべてリーフ要素として扱われます。
 Excalidraw 上では `rectangle + text` のペアとして描画されます。
 
 ```xml
@@ -76,6 +85,27 @@ Excalidraw 上では `rectangle + text` のペアとして描画されます。
 | `title` | 表示ラベル (優先) |
 | テキストコンテンツ | title がない場合のラベル |
 | (なし) | タグ名をラベルとして使用 |
+| `border` | `"none"` を指定すると枠線を非表示にする |
+| `visible` | `"false"` を指定するとそのコンポーネント自身 (枠・アイコン・ラベル) のみを非表示にする。子要素は親の `visible` に関わらず個別に描画される。レイアウト上の占有スペースは維持される |
+
+## `<item>` タグ
+
+AWS サービスアイコンをコンテナ内に配置するリーフ要素です。
+`service-catalog.csv` に記載された数値 ID を `id` 属性で指定します。
+アイコンは指定サイズ (`item-size` の値) に収まるように描画されます。
+
+```xml
+<public-subnet title="Public Subnet">
+  <item id="1178" />
+  <item id="1189" />
+</public-subnet>
+```
+
+| 属性 | 型 | 必須 | 説明 |
+|---|---|---|---|
+| `id` | int | ✓ | `service-catalog.csv` のサービス ID |
+
+> `id` に対応するアイコンが見つからない場合は描画をスキップし、エラーにはなりません。
 
 ## AWS グループタグ
 
@@ -117,6 +147,37 @@ Excalidraw 上では `rectangle + text` のペアとして描画されます。
 
 属性は `container` と同じ (`title`, `class`, `gap` など)。
 
+### レイアウト制御属性 (コンテナ共通)
+
+`frame` / `container` / `col` および全 AWS グループタグに指定できます。
+
+| 属性 | 指定値 | 説明 |
+|---|---|---|
+| `layout` | `"horizontal"` | 子要素を **横方向** に比率配置 (`col` 属性で幅比率を指定) |
+| `layout` | `"staggered"` | 子要素を奥行きオフセット付きで重ねて配置 (AWS グループタグのみ有効) |
+| `gap` | float | 子要素間隔 (px). デフォルト `16` |
+
+### 子要素のサイズ比率属性
+
+| 属性 | 使用方向 | 説明 |
+|---|---|---|
+| `row` | 縦 (`layoutStack`) | 子要素の **高さ比率** (flex-grow 相当). デフォルト `1.0` (均等) |
+| `col` | 横 (`layout="horizontal"`) | 子要素の **幅比率** (flex-grow 相当). デフォルト `1.0` (均等) |
+
+```xml
+<!-- 横並び: 左2:右1 の幅比率 -->
+<vpc title="VPC" layout="horizontal">
+  <public-subnet title="Public" col="2" />
+  <private-subnet title="Private" col="1" />
+</vpc>
+
+<!-- 縦並び: 上1:下2 の高さ比率 -->
+<region title="Region">
+  <vpc title="VPC A" row="1" />
+  <vpc title="VPC B" row="2" />
+</region>
+```
+
 ## スペーシングクラス (`class` 属性)
 
 Vuetify ライクな記法。**単位は `spacingUnit = 8px`**。
@@ -128,7 +189,16 @@ Vuetify ライクな記法。**単位は `spacingUnit = 8px`**。
 | `pa-{n}` | padding 全方向 = n × 8px |
 | `ma-{n}` | margin 全方向 = n × 8px |
 
-### 方向指定
+### 軸一括指定
+
+| クラス | 意味 |
+|---|---|
+| `px-{n}` | padding 左右 = n × 8px |
+| `py-{n}` | padding 上下 = n × 8px |
+| `mx-{n}` | margin 左右 = n × 8px |
+| `my-{n}` | margin 上下 = n × 8px |
+
+### 個別方向指定
 
 | クラス | 意味 |
 |---|---|
@@ -142,6 +212,14 @@ Vuetify ライクな記法。**単位は `spacingUnit = 8px`**。
 | `ml-{n}` | margin-left |
 
 複数クラスはスペース区切り: `class="pa-4 mt-2"`
+
+### セマンティクス
+
+| 種別 | 対象タグ | 動作 |
+|---|---|---|
+| `padding` | frame / container / col | box 内側の余白。子要素の配置開始点が pad 分だけ内側になる |
+| `padding` | AWS グループタグ / 未知コンテナ | `defaultGroupTopInset(44)` / `defaultGroupSideInset(12)` に**加算**される。`pa-2` を指定するとヘッダー下に +16px の追加余白が生まれる |
+| `margin` | 任意の子要素 | 親レイアウト (`layoutStack` / `layoutRow`) が事前に読み取り、sibling 間スペースとして割り当てる (CSS flex の margin に相当) |
 
 ## レイアウト計算ルール
 

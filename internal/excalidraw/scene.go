@@ -5,12 +5,16 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"math"
 	"math/rand"
 	"os"
 	"path/filepath"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/ryo-arima/xaligo/internal/layout"
+	"github.com/ryo-arima/xaligo/internal/repository"
 )
 
 type file struct {
@@ -57,11 +61,31 @@ const (
 	groupIconSize   = 32
 	groupFontSize   = 14
 	groupFontFamily = 2 // Helvetica (normal)
+)
 
-	// Minimum dimensions below which a box cannot be rendered meaningfully.
-	// A box smaller than these values will be skipped with a warning.
-	minBoxWidth  = 60.0
-	minBoxHeight = 48.0
+// staggerFills are background fill colors for staggered AZ layers.
+// Index = StaggerDepth (0 = front/white, 1/2 = progressively darker teal).
+var staggerFills = []string{"#ffffff", "#c8e8e8", "#92cecd"}
+
+// staggerBGColor returns the appropriate backgroundColor for a box.
+// Boxes that participate in a staggered group get a solid fill so that
+// overlapping back-layers are visually distinct.
+func staggerBGColor(b *layout.Box) string {
+	if !b.InStagger {
+		return "transparent"
+	}
+	idx := b.StaggerDepth
+	if idx >= len(staggerFills) {
+		idx = len(staggerFills) - 1
+	}
+	return staggerFills[idx]
+}
+
+const (
+	itemMaxSize = 48.0
+	itemMinSize = 16.0
+	itemLabelH  = 14.0
+	itemGap     = 8.0
 )
 
 // paperSizeNames maps (short-side, long-side) → paper name for reverse lookup.
@@ -105,9 +129,12 @@ func svgDataURL(path string) (string, error) {
 }
 
 // BuildJSON converts a Box layout tree into Excalidraw JSON.
-// svgGroupDir should be the absolute path to Architecture-Group-Icons/;
-// pass an empty string to skip icon embedding.
-func BuildJSON(root *layout.Box, svgGroupDir string) ([]byte, error) {
+// svgGroupDir:  absolute path to Architecture-Group-Icons/
+// catalogCSV:   absolute path to service-catalog.csv (used by <item> tags)
+// projectRoot:  project root directory (used to resolve rel_path from catalog)
+// itemIconSize: default maximum icon size (px) for <item> elements;
+//               the <frame item-size="N"> attribute overrides this value.
+func BuildJSON(root *layout.Box, svgGroupDir string, catalogCSV string, projectRoot string, itemIconSize float64) ([]byte, error) {
 	if root == nil {
 		return nil, fmt.Errorf("root layout is nil")
 	}
@@ -133,7 +160,21 @@ func BuildJSON(root *layout.Box, svgGroupDir string) ([]byte, error) {
 	var elements []map[string]any
 	elements = append(elements, frameElem)
 	files := map[string]any{}
-	walk(root, &elements, files, svgGroupDir, r)
+
+	// 2パス: 1) item を visibleAncestorID ごとに収集, 2) グリッド一括描画
+	itemGroups := map[string][]*layout.Box{}
+	ancestorBoxes := map[string]*layout.Box{}
+	// <frame item-size="N"> overrides the global itemIconSize.
+	if v := root.Attrs["item-size"]; v != "" {
+		if f, err := strconv.ParseFloat(v, 64); err == nil && f > 0 {
+			itemIconSize = f
+		}
+	}
+
+	walk(root, &elements, files, svgGroupDir, catalogCSV, projectRoot, r, root, itemGroups, ancestorBoxes)
+	for ancID, items := range itemGroups {
+		renderItemGrid(items, ancestorBoxes[ancID], &elements, files, catalogCSV, projectRoot, itemIconSize, r)
+	}
 
 	out := file{
 		Type:    "excalidraw",
@@ -149,26 +190,53 @@ func BuildJSON(root *layout.Box, svgGroupDir string) ([]byte, error) {
 	return json.MarshalIndent(out, "", "  ")
 }
 
-func walk(b *layout.Box, elements *[]map[string]any, files map[string]any, svgGroupDir string, r *rand.Rand) {
-	// Skip boxes that are too small to render, including all their children.
-	if b.Tag != "frame" && (b.W < minBoxWidth || b.H < minBoxHeight) {
-		fmt.Fprintf(os.Stderr,
-			"WARNING: skipping %q (%s) — too small to display (%.1f x %.1f, min %.0f x %.0f)\n",
-			b.Label, b.Tag, b.W, b.H, minBoxWidth, minBoxHeight)
+func walk(b *layout.Box, elements *[]map[string]any, files map[string]any, svgGroupDir string, catalogCSV string, projectRoot string, r *rand.Rand, visibleAncestor *layout.Box, itemGroups map[string][]*layout.Box, ancestorBoxes map[string]*layout.Box) {
+	if b.Tag == "item" {
+		// 描画はしない: visibleAncestor に結び付けて収集のみ
+		key := visibleAncestor.ID
+		itemGroups[key] = append(itemGroups[key], b)
+		ancestorBoxes[key] = visibleAncestor
 		return
 	}
 
-	if b.Tag != "frame" {
+	// selfVisible=false のとき: 自身の描画 (枠・アイコン・ラベル) はスキップするが
+	// 子要素の描画は継続する (親子関係なく個別に制御可能)。
+	selfVisible := b.Attrs["visible"] != "false"
+
+	if b.Tag != "frame" && (b.W < layout.MinBoxWidth || b.H < layout.MinBoxHeight) {
+		fmt.Fprintf(os.Stderr,
+			"WARNING: skipping %q (%s) — too small to display (%.1f x %.1f, min %.0f x %.0f)\n",
+			b.Label, b.Tag, b.W, b.H, layout.MinBoxWidth, layout.MinBoxHeight)
+		// 子の item も同じ visibleAncestor に結び付けて収集
+		for _, c := range b.Children {
+			if c.Tag == "item" {
+				key := visibleAncestor.ID
+				itemGroups[key] = append(itemGroups[key], c)
+				ancestorBoxes[key] = visibleAncestor
+			} else {
+				walk(c, elements, files, svgGroupDir, catalogCSV, projectRoot, r, visibleAncestor, itemGroups, ancestorBoxes)
+			}
+		}
+		return
+	}
+
+	if b.Tag != "frame" && selfVisible {
 		updated := time.Now().UnixMilli()
+
+		noBorder := b.Attrs["border"] == "none"
 
 		if gd, isGroup := awsGroups[b.Tag]; isGroup {
 			// ── AWS group border ────────────────────────────────────
 			rectID := fmt.Sprintf("%s-rect", b.ID)
+			groupStroke := gd.StrokeColor
+			if noBorder {
+				groupStroke = "transparent"
+			}
 			*elements = append(*elements, map[string]any{
 				"id": rectID, "type": "rectangle",
 				"x": b.X, "y": b.Y, "width": b.W, "height": b.H,
 				"angle": 0,
-				"strokeColor": gd.StrokeColor, "backgroundColor": "transparent",
+				"strokeColor": groupStroke, "backgroundColor": staggerBGColor(b),
 				"fillStyle": "solid",
 				"strokeWidth": gd.StrokeWidth, "strokeStyle": gd.StrokeStyle,
 				"roughness": 0, "opacity": 100,
@@ -212,10 +280,12 @@ func walk(b *layout.Box, elements *[]map[string]any, files map[string]any, svgGr
 
 			// ── AWS group label ─────────────────────────────────────
 			textY := b.Y + float64(groupIconSize-groupFontSize)/2
+			// groupFontFamily=2 (Helvetica 14px): ~7.5px/rune
+			lblW := textWidth(b.Label, 7.5)
 			*elements = append(*elements, map[string]any{
 				"id": fmt.Sprintf("%s-label", b.ID), "type": "text",
 				"x": textX, "y": textY,
-				"width": b.W - (textX - b.X) - 16, "height": float64(groupFontSize + 4),
+				"width": lblW, "height": float64(groupFontSize + 4),
 				"angle": 0,
 				"strokeColor": gd.StrokeColor, "backgroundColor": "transparent",
 				"fillStyle": "solid", "strokeWidth": 1, "strokeStyle": "solid",
@@ -233,11 +303,15 @@ func walk(b *layout.Box, elements *[]map[string]any, files map[string]any, svgGr
 			// ── Generic tag: rectangle + label ──────────────────────
 			rectID := fmt.Sprintf("%s-rect", b.ID)
 			textID := fmt.Sprintf("%s-text", b.ID)
+			genStroke := "#1e1e1e"
+			if noBorder {
+				genStroke = "transparent"
+			}
 			*elements = append(*elements, map[string]any{
 				"id": rectID, "type": "rectangle",
 				"x": b.X, "y": b.Y, "width": b.W, "height": b.H,
 				"angle": 0,
-				"strokeColor": "#1e1e1e", "backgroundColor": "transparent",
+				"strokeColor": genStroke, "backgroundColor": "transparent",
 				"fillStyle": "hachure", "strokeWidth": 1, "strokeStyle": "solid",
 				"roughness": 0, "opacity": 100,
 				"groupIds": []string{}, "roundness": map[string]any{"type": 3},
@@ -250,7 +324,8 @@ func walk(b *layout.Box, elements *[]map[string]any, files map[string]any, svgGr
 			*elements = append(*elements, map[string]any{
 				"id": textID, "type": "text",
 				"x": b.X + 12, "y": b.Y + 12,
-				"width": float64(len([]rune(b.Label))*8 + 20), "height": 24,
+				// fontFamily=1 (Virgil 20px): ~10px/rune
+				"width": textWidth(b.Label, 10.0), "height": 24,
 				"angle": 0,
 				"strokeColor": "#1e1e1e", "backgroundColor": "transparent",
 				"fillStyle": "solid", "strokeWidth": 1, "strokeStyle": "solid",
@@ -267,7 +342,260 @@ func walk(b *layout.Box, elements *[]map[string]any, files map[string]any, svgGr
 		}
 	}
 
-	for _, c := range b.Children {
-		walk(c, elements, files, svgGroupDir, r)
+	// Stagger background layers: render border + label only, skip children.
+	if b.IsStaggerBg {
+		return
 	}
+	// 非表示要素は visibleAncestor を引き継ぐ (子の item が正しい親に紐付くよう)
+	nextVisible := b
+	if !selfVisible {
+		nextVisible = visibleAncestor
+	}
+	for _, c := range b.Children {
+		walk(c, elements, files, svgGroupDir, catalogCSV, projectRoot, r, nextVisible, itemGroups, ancestorBoxes)
+	}
+}
+
+// itemAbbreviations maps the service name (after stripping "Amazon "/"AWS " prefix)
+// to its well-known abbreviation. Add entries freely; anything not found falls back
+// to the prefix-stripped name.
+var itemAbbreviations = map[string]string{
+	// Networking & Content Delivery
+	"CloudFront":                       "CF",
+	"Route 53":                         "R53",
+	"Virtual Private Cloud":            "VPC",
+	"Elastic Load Balancing":           "ELB",
+	"App Mesh":                         "AppMesh",
+	"Private 5G":                       "P5G",
+	"Direct Connect":                   "DX",
+	"API Gateway":                      "APIGW",
+	"Transit Gateway":                  "TGW",
+	"Global Accelerator":               "GA",
+	"PrivateLink":                      "PL",
+	// Compute
+	"EC2":                              "EC2",
+	"EC2 Auto Scaling":                 "ASG",
+	"Lambda":                           "Lambda",
+	"Elastic Container Service":        "ECS",
+	"Elastic Kubernetes Service":       "EKS",
+	"Fargate":                          "Fargate",
+	"Elastic Beanstalk":                "EB",
+	"Batch":                            "Batch",
+	// Storage
+	"Simple Storage Service":           "S3",
+	"Elastic File System":              "EFS",
+	"S3 Glacier":                       "Glacier",
+	"Storage Gateway":                  "SGW",
+	"Backup":                           "Backup",
+	// Database
+	"RDS":                              "RDS",
+	"DynamoDB":                         "DDB",
+	"ElastiCache":                      "ElastiCache",
+	"Redshift":                         "RS",
+	"Neptune":                          "Neptune",
+	"DocumentDB":                       "DocDB",
+	"QLDB":                             "QLDB",
+	// Analytics
+	"Kinesis":                          "Kinesis",
+	"Athena":                           "Athena",
+	"Glue":                             "Glue",
+	"EMR":                              "EMR",
+	"OpenSearch Service":               "OSS",
+	"QuickSight":                       "QS",
+	"Lake Formation":                   "LF",
+	"MSK":                              "MSK",
+	// Application Integration
+	"Simple Queue Service":             "SQS",
+	"Simple Notification Service":      "SNS",
+	"EventBridge":                      "EB",
+	"Step Functions":                   "SF",
+	"MQ":                               "MQ",
+	"AppSync":                          "AppSync",
+	// Management & Governance
+	"CloudWatch":                       "CW",
+	"CloudFormation":                   "CFn",
+	"CloudTrail":                       "CT",
+	"Systems Manager":                  "SSM",
+	"Organizations":                    "Orgs",
+	"Control Tower":                    "CT",
+	"Service Catalog":                  "SC",
+	"Trusted Advisor":                  "TA",
+	// Security, Identity & Compliance
+	"Identity and Access Management":   "IAM",
+	"Cognito":                          "Cognito",
+	"Secrets Manager":                  "SM",
+	"Key Management Service":           "KMS",
+	"Certificate Manager":              "ACM",
+	"WAF":                              "WAF",
+	"Shield":                           "Shield",
+	"GuardDuty":                        "GD",
+	"Security Hub":                     "SH",
+	// Developer Tools
+	"CodeDeploy":                       "CD",
+	"CodePipeline":                     "CP",
+	"CodeBuild":                        "CB",
+	"CodeCommit":                       "CC",
+	"CodeArtifact":                     "CA",
+	"CodeStar":                         "CS",
+	// Machine Learning
+	"SageMaker":                        "SM",
+	"Rekognition":                      "Rekog",
+	"Bedrock":                          "Bedrock",
+	// Containers
+	"Elastic Container Registry":       "ECR",
+	// Migration
+	"Database Migration Service":       "DMS",
+	"DataSync":                         "DS",
+	"Transfer Family":                  "TF",
+	// End User Computing
+	"WorkSpaces Family":                "WorkSpaces",
+	"AppStream 2":                      "AppStream",
+}
+
+// itemShortName returns a compact label for an AWS service icon.
+// It first strips the "Amazon " or "AWS " prefix, then looks up the result
+// in itemAbbreviations. If no entry is found, the prefix-stripped name is used.
+func itemShortName(name string) string {
+	short := name
+	for _, pfx := range []string{"Amazon ", "AWS "} {
+		if strings.HasPrefix(name, pfx) {
+			short = name[len(pfx):]
+			break
+		}
+	}
+	if abbr, ok := itemAbbreviations[short]; ok {
+		return abbr
+	}
+	return short
+}
+
+// textWidth estimates the rendered width of a string in pixels.
+// charW: approximate pixel width per rune (font-specific).
+func textWidth(s string, charW float64) float64 {
+	return math.Ceil(float64(len([]rune(s)))*charW) + 8
+}
+
+// renderItemGrid lays out all items collected under the same visibleAncestor
+// as a single horizontal row (no line wrap) within that ancestor's bounds.
+// Items are placed below the group header row (GroupTopInset) so they don't
+// overlap the ancestor's label or border icon.
+func renderItemGrid(items []*layout.Box, ancestor *layout.Box, elements *[]map[string]any, files map[string]any, catalogCSV string, projectRoot string, maxSize float64, r *rand.Rand) {
+	if catalogCSV == "" || len(items) == 0 || ancestor == nil {
+		return
+	}
+	n := float64(len(items))
+
+	// ラベルテキストボックスの終端 X を求める (walk の label 描画と同じロジック)
+	labelStartX := ancestor.X + 4.0
+	if gd, ok := awsGroups[ancestor.Tag]; ok && gd.IconFile != "" {
+		labelStartX = ancestor.X + float64(groupIconSize) + 4
+	}
+	lblW := textWidth(ancestor.Label, 7.5)
+	// item はラベルテキストの右端 + gap から開始
+	itemStartX := labelStartX + lblW + itemGap
+
+	// 右端 (GroupSideInset 分の余白) までの幅
+	availW := ancestor.X + ancestor.W - layout.GroupSideInset - itemStartX
+	iconSizeW := (availW - itemGap*(n-1)) / n
+
+	// 高さ: テキストボックス行は考慮しない。ancestor 全体高から上下 padding と item ラベル分のみ引く
+	iconSizeH := ancestor.H - itemGap*2 - itemLabelH - 4
+
+	iconSize := iconSizeW
+	if iconSizeH < iconSize {
+		iconSize = iconSizeH
+	}
+	if iconSize > maxSize {
+		iconSize = maxSize
+	}
+	if iconSize < itemMinSize {
+		iconSize = itemMinSize
+	}
+
+	// ancestor の高さ方向に上寄せ (上 padding = itemGap)
+	iconY := ancestor.Y + itemGap
+	for i, item := range items {
+		iconX := itemStartX + float64(i)*(iconSize+itemGap)
+		renderIconAt(item.ID, item.Attrs["id"], iconX, iconY, iconSize, elements, files, catalogCSV, projectRoot, r)
+	}
+}
+
+// renderIconAt draws a single service icon (image + label) at an explicit position.
+func renderIconAt(boxID, idAttr string, iconX, iconY, iconSize float64, elements *[]map[string]any, files map[string]any, catalogCSV string, projectRoot string, r *rand.Rand) {
+	if catalogCSV == "" {
+		return
+	}
+	idAttr = strings.TrimSpace(idAttr)
+	if idAttr == "" {
+		return
+	}
+
+	// 1:1 — id は単一の整数
+	id, err := strconv.Atoi(idAttr)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "WARNING: <item id=%q>: id must be a single integer: %v\n", idAttr, err)
+		return
+	}
+	ce, err := repository.LookupCatalogByID(catalogCSV, id)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "WARNING: <item id=%d>: %v\n", id, err)
+		return
+	}
+	if ce.DataURL == "" && ce.RelPath != "" && projectRoot != "" {
+		svgPath := filepath.Join(projectRoot, ce.RelPath)
+		if du, err2 := svgDataURL(svgPath); err2 == nil {
+			ce.DataURL = du
+		} else {
+			fmt.Fprintf(os.Stderr, "WARNING: <item id=%d>: cannot load SVG %s: %v\n", id, svgPath, err2)
+		}
+	}
+	if ce.DataURL == "" {
+		return
+	}
+
+	updated := time.Now().UnixMilli()
+	fid := fmt.Sprintf("item-cat-%d", id)
+	if _, exists := files[fid]; !exists {
+		files[fid] = map[string]any{
+			"mimeType": "image/svg+xml", "id": fid,
+			"dataURL": ce.DataURL,
+			"created": updated, "lastRetrieved": updated,
+		}
+	}
+	seed := r.Intn(99999999)
+	iconID := fmt.Sprintf("%s-item", boxID)
+	*elements = append(*elements, map[string]any{
+		"id": iconID, "type": "image",
+		"x": iconX, "y": iconY,
+		"width": iconSize, "height": iconSize,
+		"fileId": fid, "status": "saved",
+		"scale": []int{1, 1},
+		"strokeColor": "transparent", "backgroundColor": repository.SVGBGColor(ce.DataURL),
+		"fillStyle": "solid", "strokeWidth": 1, "strokeStyle": "solid",
+		"roughness": 0, "opacity": 100, "angle": 0,
+		"groupIds": []string{}, "roundness": nil,
+		"seed": seed, "version": 1, "versionNonce": seed,
+		"isDeleted": false, "boundElements": nil,
+		"updated": updated, "link": nil, "locked": false, "frameId": nil,
+	})
+	label := itemShortName(ce.Service)
+	labelY := iconY + iconSize + 4
+	textSeed := r.Intn(99999999)
+	*elements = append(*elements, map[string]any{
+		"id": iconID + "-lbl", "type": "text",
+		"x": iconX, "y": labelY,
+		"width": iconSize, "height": itemMaxSize + 2,
+		"angle": 0,
+		"strokeColor": "#1e1e1e", "backgroundColor": "transparent",
+		"fillStyle": "solid", "strokeWidth": 1, "strokeStyle": "solid",
+		"roughness": 0, "opacity": 100,
+		"groupIds": []string{}, "roundness": nil,
+		"seed": textSeed, "version": 1, "versionNonce": textSeed,
+		"isDeleted": false, "boundElements": nil,
+		"updated": updated, "link": nil, "locked": false, "frameId": nil,
+		"text": label, "rawText": label, "originalText": label,
+		"fontSize": 11, "fontFamily": 4,
+		"textAlign": "center", "verticalAlign": "top",
+		"containerId": nil, "lineHeight": 1.25,
+	})
 }

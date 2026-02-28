@@ -52,7 +52,7 @@ func RunRender(inputPath, outputPath string) error {
 	cfg := config.New()
 	svgGroupDir := filepath.Join(cfg.AssetDir_, "Architecture-Group-Icons")
 
-	out, err := excalidraw.BuildJSON(root, svgGroupDir)
+	out, err := excalidraw.BuildJSON(root, svgGroupDir, cfg.SvcCatalogCSV, cfg.ProjectRoot, cfg.ItemIconSize)
 	if err != nil {
 		return fmt.Errorf("build excalidraw JSON: %w", err)
 	}

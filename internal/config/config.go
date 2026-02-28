@@ -20,6 +20,9 @@ type appYAML struct {
 		IconSize int     `yaml:"icon_size"`
 		FontSize int     `yaml:"font_size"`
 	} `yaml:"legend"`
+	Item struct {
+		IconSize float64 `yaml:"icon_size"`
+	} `yaml:"item"`
 }
 
 // LegendConfig holds resolved legend defaults.
@@ -37,6 +40,7 @@ type Config struct {
 	OutFramesDir  string // absolute path to generated frames output dir
 	SvcCatalogCSV string // absolute path to service-catalog.csv
 	Legend        LegendConfig
+	ItemIconSize  float64 // default max icon size for <item> elements (px)
 }
 
 // New loads etc/app.yaml from the project root and returns a resolved Config.
@@ -52,6 +56,7 @@ func New() *Config {
 	def.Legend.OffsetY = 0
 	def.Legend.IconSize = 32
 	def.Legend.FontSize = 12
+	def.Item.IconSize = 48.0
 
 	yamlPath := filepath.Join(root, "etc", "resources", "aws", "app.yaml")
 	if data, err := os.ReadFile(yamlPath); err == nil {
@@ -70,6 +75,7 @@ func New() *Config {
 		AssetDir_:     abs(def.Paths.AssetPackage),
 		OutFramesDir:  abs(def.Paths.OutputFrames),
 		SvcCatalogCSV: abs(def.Paths.ServiceCatalogCSV),
+		ItemIconSize:  def.Item.IconSize,
 		Legend: LegendConfig{
 			OffsetX:  def.Legend.OffsetX,
 			OffsetY:  def.Legend.OffsetY,
