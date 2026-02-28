@@ -1,0 +1,13 @@
+<!-- server-contents: Server contents (icon: Server-contents_32.svg) -->
+<frame width="600" height="440" class="pa-4">
+  <server-contents title="Server contents">
+    <row gap="16">
+      <col span="6" class="pa-2">
+        <card title="Resource A" />
+      </col>
+      <col span="6" class="pa-2">
+        <card title="Resource B" />
+      </col>
+    </row>
+  </server-contents>
+</frame>

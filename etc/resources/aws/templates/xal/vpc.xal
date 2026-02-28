@@ -1,0 +1,13 @@
+<!-- vpc: Virtual private cloud (VPC) (icon: Virtual-private-cloud-VPC_32.svg) -->
+<frame width="600" height="440" class="pa-4">
+  <vpc title="Virtual private cloud (VPC)">
+    <row gap="16">
+      <col span="6" class="pa-2">
+        <card title="Resource A" />
+      </col>
+      <col span="6" class="pa-2">
+        <card title="Resource B" />
+      </col>
+    </row>
+  </vpc>
+</frame>

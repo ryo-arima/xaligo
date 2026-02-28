@@ -1,0 +1,13 @@
+<!-- aws-iot-greengrass-deployment: AWS IoT Greengrass Deployment (icon: AWS-IoT-Greengrass-Deployment_32.svg) -->
+<frame width="600" height="440" class="pa-4">
+  <aws-iot-greengrass-deployment title="AWS IoT Greengrass Deployment">
+    <row gap="16">
+      <col span="6" class="pa-2">
+        <card title="Resource A" />
+      </col>
+      <col span="6" class="pa-2">
+        <card title="Resource B" />
+      </col>
+    </row>
+  </aws-iot-greengrass-deployment>
+</frame>

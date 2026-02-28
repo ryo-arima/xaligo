@@ -1,0 +1,13 @@
+<!-- aws-iot-greengrass: AWS IoT Greengrass (no icon) -->
+<frame width="600" height="440" class="pa-4">
+  <aws-iot-greengrass title="AWS IoT Greengrass">
+    <row gap="16">
+      <col span="6" class="pa-2">
+        <card title="Resource A" />
+      </col>
+      <col span="6" class="pa-2">
+        <card title="Resource B" />
+      </col>
+    </row>
+  </aws-iot-greengrass>
+</frame>

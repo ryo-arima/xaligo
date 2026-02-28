@@ -1,0 +1,13 @@
+<!-- aws-account: AWS account (icon: AWS-Account_32.svg) -->
+<frame width="600" height="440" class="pa-4">
+  <aws-account title="AWS account">
+    <row gap="16">
+      <col span="6" class="pa-2">
+        <card title="Resource A" />
+      </col>
+      <col span="6" class="pa-2">
+        <card title="Resource B" />
+      </col>
+    </row>
+  </aws-account>
+</frame>

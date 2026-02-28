@@ -1,0 +1,31 @@
+<!-- xaligo generate xal: clouds=1 accounts=1 regions=2 azs=2 az-layout=grid subnets=2 spacing=both start=top -->
+<frame width="1122" height="794" class="pa-4">
+  <aws-cloud title="AWS Cloud 1">
+    <aws-account title="Account 1">
+      <region title="Region 1">
+        <vpc title="VPC 1">
+          <availability-zone title="AZ 1">
+            <public-subnet title="Public Subnet 1" />
+            <private-subnet title="Private Subnet 1" />
+          </availability-zone>
+          <availability-zone title="AZ 2">
+            <public-subnet title="Public Subnet 1" />
+            <private-subnet title="Private Subnet 1" />
+          </availability-zone>
+        </vpc>
+      </region>
+      <region title="Region 2">
+        <vpc title="VPC 2">
+          <availability-zone title="AZ 1">
+            <public-subnet title="Public Subnet 1" />
+            <private-subnet title="Private Subnet 1" />
+          </availability-zone>
+          <availability-zone title="AZ 2">
+            <public-subnet title="Public Subnet 1" />
+            <private-subnet title="Private Subnet 1" />
+          </availability-zone>
+        </vpc>
+      </region>
+    </aws-account>
+  </aws-cloud>
+</frame>

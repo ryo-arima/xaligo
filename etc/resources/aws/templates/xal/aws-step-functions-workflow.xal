@@ -1,0 +1,13 @@
+<!-- aws-step-functions-workflow: AWS Step Functions workflow (no icon) -->
+<frame width="600" height="440" class="pa-4">
+  <aws-step-functions-workflow title="AWS Step Functions workflow">
+    <row gap="16">
+      <col span="6" class="pa-2">
+        <card title="Resource A" />
+      </col>
+      <col span="6" class="pa-2">
+        <card title="Resource B" />
+      </col>
+    </row>
+  </aws-step-functions-workflow>
+</frame>
