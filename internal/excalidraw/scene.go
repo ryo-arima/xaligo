@@ -163,7 +163,7 @@ func BuildJSON(root *layout.Box, svgGroupDir string, catalogCSV string, projectR
 	elements = append(elements, frameElem)
 	files := map[string]any{}
 
-	// 2パス: 1) item を visibleAncestorID ごとに収集, 2) グリッド一括描画
+	// Two-pass: 1) collect items per visibleAncestorID, 2) render each group as a grid
 	itemGroups := map[string][]*layout.Box{}
 	ancestorBoxes := map[string]*layout.Box{}
 	// <frame item-size="N"> overrides the global itemIconSize.
@@ -203,22 +203,22 @@ func BuildJSON(root *layout.Box, svgGroupDir string, catalogCSV string, projectR
 
 func walk(b *layout.Box, elements *[]map[string]any, files map[string]any, svgGroupDir string, catalogCSV string, projectRoot string, r *rand.Rand, visibleAncestor *layout.Box, itemGroups map[string][]*layout.Box, ancestorBoxes map[string]*layout.Box) {
 	if b.Tag == "item" {
-		// 描画はしない: visibleAncestor に結び付けて収集のみ
+		// Do not render: only collect, associating with visibleAncestor
 		key := visibleAncestor.ID
 		itemGroups[key] = append(itemGroups[key], b)
 		ancestorBoxes[key] = visibleAncestor
 		return
 	}
 
-	// selfVisible=false のとき: 自身の描画 (枠・アイコン・ラベル) はスキップするが
-	// 子要素の描画は継続する (親子関係なく個別に制御可能)。
+	// When selfVisible=false: skip rendering this element (border, icon, label),
+	// but continue rendering children (each child is controlled independently).
 	selfVisible := b.Attrs["visible"] != "false"
 
 	if b.Tag != "frame" && (b.W < layout.MinBoxWidth || b.H < layout.MinBoxHeight) {
 		fmt.Fprintf(os.Stderr,
 			"WARNING: skipping %q (%s) — too small to display (%.1f x %.1f, min %.0f x %.0f)\n",
 			b.Label, b.Tag, b.W, b.H, layout.MinBoxWidth, layout.MinBoxHeight)
-		// 子の item も同じ visibleAncestor に結び付けて収集
+		// Collect child items under the same visibleAncestor
 		for _, c := range b.Children {
 			if c.Tag == "item" {
 				key := visibleAncestor.ID
@@ -357,7 +357,7 @@ func walk(b *layout.Box, elements *[]map[string]any, files map[string]any, svgGr
 	if b.IsStaggerBg {
 		return
 	}
-	// 非表示要素は visibleAncestor を引き継ぐ (子の item が正しい親に紐付くよう)
+	// Hidden elements pass their visibleAncestor down so child items bind to the correct parent
 	nextVisible := b
 	if !selfVisible {
 		nextVisible = visibleAncestor
@@ -496,20 +496,20 @@ func renderItemGrid(items []*layout.Box, ancestor *layout.Box, elements *[]map[s
 	}
 	n := float64(len(items))
 
-	// ラベルテキストボックスの終端 X を求める (walk の label 描画と同じロジック)
+	// Compute the right edge X of the label text box (same logic as label rendering in walk)
 	labelStartX := ancestor.X + 4.0
 	if gd, ok := awsGroups[ancestor.Tag]; ok && gd.IconFile != "" {
 		labelStartX = ancestor.X + float64(groupIconSize) + 4
 	}
 	lblW := textWidth(ancestor.Label, 7.5)
-	// item はラベルテキストの右端 + gap から開始
+	// Items start at the right edge of the label text + gap
 	itemStartX := labelStartX + lblW + itemGap
 
-	// 右端 (GroupSideInset 分の余白) までの幅
+	// Available width up to the right edge (with GroupSideInset margin)
 	availW := ancestor.X + ancestor.W - layout.GroupSideInset - itemStartX
 	iconSizeW := (availW - itemGap*(n-1)) / n
 
-	// 高さ: テキストボックス行は考慮しない。ancestor 全体高から上下 padding と item ラベル分のみ引く
+	// Height: ignore the text box row; subtract only top/bottom padding and item label height from the ancestor's total height
 	iconSizeH := ancestor.H - itemGap*2 - itemLabelH - 4
 
 	iconSize := iconSizeW
@@ -523,7 +523,7 @@ func renderItemGrid(items []*layout.Box, ancestor *layout.Box, elements *[]map[s
 		iconSize = itemMinSize
 	}
 
-	// ancestor の高さ方向に上寄せ (上 padding = itemGap)
+	// Align to the top of the ancestor's height (top padding = itemGap)
 	iconY := ancestor.Y + itemGap
 	for i, item := range items {
 		iconX := itemStartX + float64(i)*(iconSize+itemGap)
@@ -543,7 +543,7 @@ func renderIconAt(boxID, idAttr string, iconX, iconY, iconSize float64, elements
 		return
 	}
 
-	// 1:1 — id は単一の整数
+	// 1:1 — id is a single integer
 	id, err := strconv.Atoi(idAttr)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "WARNING: <item id=%q>: id must be a single integer: %v\n", idAttr, err)

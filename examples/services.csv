@@ -1,15 +1,15 @@
-# 3-tier Web Architecture サービスリスト
-# 形式:
-# id,正式名称,略語,サービス概要,用途,備考
-1179,Amazon Route 53,R53,DNSウェブサービス,ドメイン名解決・ヘルスチェック,
-1178,Amazon CloudFront,CF,コンテンツ配信ネットワーク (CDN),静的/動的コンテンツの高速配信,
-1182,Elastic Load Balancing,ELB,負荷分散サービス,トラフィックを複数インスタンスに分散,
-25,Amazon EC2 Auto Scaling,ASG,自動スケーリング,需要に応じてEC2インスタンス数を自動調整,
-27,Amazon EC2,EC2,仮想サーバー,アプリケーションサーバーとして使用,
-1020,Amazon Simple Storage Service,S3,オブジェクトストレージ,静的アセット・バックアップの保存,
-117,Amazon RDS,RDS,マネージドリレーショナルDB,アプリケーションのデータ永続化,
-113,Amazon ElastiCache,EC,インメモリキャッシュ,セッション管理・クエリキャッシュ,
-604,Amazon CloudWatch,CW,監視・オブザーバビリティ,メトリクス収集・アラート・ログ管理,
-1181,Amazon Virtual Private Cloud,VPC,仮想プライベートクラウド,ネットワーク分離・サブネット管理,
-216,AWS Identity and Access Management,IAM,アクセス管理,ユーザー・ロール・ポリシーの管理,
-13,AWS Lambda,Lambda,サーバーレス関数実行,イベント駆動の処理・API バックエンド,
+# 3-tier Web Architecture service list
+# Format:
+# id,official_name,abbreviation,description,usage,notes
+1179,Amazon Route 53,R53,DNS web service,Domain name resolution and health checks,
+1178,Amazon CloudFront,CF,Content Delivery Network (CDN),Fast delivery of static/dynamic content,
+1182,Elastic Load Balancing,ELB,Load balancing service,Distributes traffic across multiple instances,
+25,Amazon EC2 Auto Scaling,ASG,Auto scaling,Automatically adjusts EC2 instance count based on demand,
+27,Amazon EC2,EC2,Virtual server,Used as an application server,
+1020,Amazon Simple Storage Service,S3,Object storage,Stores static assets and backups,
+117,Amazon RDS,RDS,Managed relational database,Persists application data,
+113,Amazon ElastiCache,EC,In-memory cache,Session management and query caching,
+604,Amazon CloudWatch,CW,Monitoring and observability,Metrics collection, alerting, and log management,
+1181,Amazon Virtual Private Cloud,VPC,Virtual private cloud,Network isolation and subnet management,
+216,AWS Identity and Access Management,IAM,Access management,Manages users, roles, and policies,
+13,AWS Lambda,Lambda,Serverless function execution,Event-driven processing and API backends,

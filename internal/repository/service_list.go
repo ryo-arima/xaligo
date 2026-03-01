@@ -31,7 +31,7 @@ func ReadServiceList(path string) ([]entity.ServiceEntry, error) {
 		if line == "" || strings.HasPrefix(line, "#") {
 			continue
 		}
-		// Split up to 7 columns: id,正式名称,略語,サービス概要,用途,備考
+		// Split up to 7 columns: id,official_name,abbreviation,description,usage,notes
 		parts := strings.SplitN(line, ",", 7)
 		for i := range parts {
 			parts[i] = strings.TrimSpace(parts[i])
@@ -50,7 +50,7 @@ func ReadServiceList(path string) ([]entity.ServiceEntry, error) {
 				entry.OfficialName = parts[0]
 			}
 		default:
-			// 3+ columns: id,正式名称,略語,...
+		// 3+ columns: id,official_name,abbreviation,...
 			if id, err := strconv.Atoi(parts[0]); err == nil {
 				entry.CatalogID = id
 				entry.OfficialName = parts[1]

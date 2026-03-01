@@ -84,7 +84,7 @@ func layoutNode(node *model.Node, target *Box, x, y, w, h float64) {
 	target.Attrs = node.Attrs
 	pad, mar := parseClassSpacing(node.Attr("class"))
 
-	// margin は親から渡された割り当て領域を削る (sibling spacing)
+	// margin shrinks the allocation passed from the parent (sibling spacing)
 	boxX := x + mar.Left
 	boxY := y + mar.Top
 	boxW := w - mar.Left - mar.Right
@@ -94,7 +94,7 @@ func layoutNode(node *model.Node, target *Box, x, y, w, h float64) {
 	target.W = boxW
 	target.H = boxH
 
-	// padding は box 内側の余白 (子要素の配置開始点)
+	// padding is the inner margin of the box (offset for child placement)
 	innerX := boxX + pad.Left
 	innerY := boxY + pad.Top
 	innerW := boxW - pad.Left - pad.Right
@@ -116,11 +116,12 @@ func layoutNode(node *model.Node, target *Box, x, y, w, h float64) {
 			layoutStack(node, target, innerX, innerY, innerW, innerH)
 		}
 	default:
-		// AWS グループタグおよびその他の未知タグ:
-		// 子要素があればコンテナ, なければリーフとして扱う。
+		// AWS group tags and other unknown tags:
+		// treat as container when they have children, otherwise as leaf.
 		kids := layoutKids(node)
 		if len(kids) > 0 {
-			// <item> のみの親はグループアイコン/ラベルがないので topInset を適用しない
+			// Parents whose only children are <item> have no group icon/label,
+			// so topInset is not applied — use layoutRow instead.
 			allItems := true
 			for _, ch := range kids {
 				if ch.Tag != "item" {
@@ -132,8 +133,8 @@ func layoutNode(node *model.Node, target *Box, x, y, w, h float64) {
 				layoutRow(node, target, innerX, innerY, innerW, innerH)
 				break
 			}
-			// グループ inset は常に適用。ユーザー指定 padding はその上に加算する。
-			// これにより class="pa-2" でヘッダー行と子要素が重なることを防ぐ。
+			// Group inset is always applied; user-specified padding is added on top.
+			// This prevents class="pa-2" from causing the header row to overlap children.
 			gInnerX := boxX + defaultGroupSideInset + pad.Left
 			gInnerY := boxY + defaultGroupTopInset + pad.Top
 			gInnerW := boxW - defaultGroupSideInset*2 - pad.Left - pad.Right
@@ -158,9 +159,9 @@ func layoutStack(node *model.Node, target *Box, x, y, w, h float64) {
 	}
 	gap := attrFloat(node.Attr("gap"), 16)
 
-	// 各子要素の margin を事前に読み取り、縦方向の余白合計を算出する。
-	// これにより margin が sibling 間スペースとして機能する (CSS ライク)。
-	// row 属性は flex-grow スタイルの高さ比率。デフォルト 1.0 (均等)。
+	// Pre-read each child's margin to compute the total vertical margin.
+	// This makes margin work as sibling spacing (CSS-like).
+	// The row attribute is a flex-grow style height ratio; default 1.0 (equal).
 	totalMarginH := 0.0
 	totalRow := 0.0
 	for _, child := range children {
@@ -174,7 +175,7 @@ func layoutStack(node *model.Node, target *Box, x, y, w, h float64) {
 	for i, child := range children {
 		_, childMar := parseClassSpacing(child.Attr("class"))
 		row := attrFloat(child.Attr("row"), 1.0)
-		// 子への割り当て = 比率に応じた content 高さ + その子自身の上下 margin
+		// Child allocation = content height proportional to ratio + child's own top/bottom margin
 		childH := availH * (row / totalRow)
 		alloc := childH + childMar.Top + childMar.Bottom
 		cb := &Box{ID: childID(target.ID, i), Tag: child.Tag, Label: labelOf(child)}
@@ -194,8 +195,8 @@ func layoutFlexH(node *model.Node, target *Box, x, y, w, h float64) {
 	}
 	gap := attrFloat(node.Attr("gap"), 16)
 
-	// 各子要素の水平 margin を事前集計し利用可能幅を算出する。
-	// col 属性は flex-grow スタイルの幅比率。デフォルト 1.0 (均等)。
+	// Pre-aggregate each child's horizontal margin to compute available width.
+	// The col attribute is a flex-grow style width ratio; default 1.0 (equal).
 	totalMarginW := 0.0
 	totalCol := 0.0
 	for _, child := range children {
@@ -209,7 +210,7 @@ func layoutFlexH(node *model.Node, target *Box, x, y, w, h float64) {
 	for i, child := range children {
 		_, childMar := parseClassSpacing(child.Attr("class"))
 		col := attrFloat(child.Attr("col"), 1.0)
-		// 子への割り当て = 比率に応じた content 幅 + その子自身の左右 margin
+		// Child allocation = content width proportional to ratio + child's own left/right margin
 		childW := availW * (col / totalCol)
 		alloc := childW + childMar.Left + childMar.Right
 		cb := &Box{ID: childID(target.ID, i), Tag: child.Tag, Label: labelOf(child)}
@@ -226,7 +227,7 @@ func layoutRow(node *model.Node, target *Box, x, y, w, h float64) {
 	}
 	gap := attrFloat(node.Attr("gap"), 16)
 
-	// 各子要素の水平 margin を事前に読み取り、幅方向の合計を算出する。
+	// Pre-read each child's horizontal margin to compute the total width.
 	totalMarginW := 0.0
 	for _, child := range children {
 		_, childMar := parseClassSpacing(child.Attr("class"))
@@ -328,7 +329,7 @@ func parseClassSpacing(class string) (Spacing, Spacing) {
 		case strings.HasPrefix(tok, "ma-"):
 			v := spacingValue(tok[3:])
 			mar = Spacing{Top: v, Right: v, Bottom: v, Left: v}
-		// 軸別一括: px=左右, py=上下
+		// Axis shorthand: px=left+right, py=top+bottom
 		case strings.HasPrefix(tok, "px-"):
 			v := spacingValue(tok[3:])
 			pad.Left = v
@@ -345,7 +346,7 @@ func parseClassSpacing(class string) (Spacing, Spacing) {
 			v := spacingValue(tok[3:])
 			mar.Top = v
 			mar.Bottom = v
-		// 個別方向
+		// Individual directions
 		case strings.HasPrefix(tok, "pt-"):
 			pad.Top = spacingValue(tok[3:])
 		case strings.HasPrefix(tok, "pr-"):
