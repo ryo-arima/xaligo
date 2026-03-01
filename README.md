@@ -1,8 +1,9 @@
 # xaligo
 
-![Gopher and Crawfish by a river](docs/images/Gemini_Generated_Image_nbtdd4nbtdd4nbtd.png)
+![Gopher and Crawfish by a river](docs/images/Gemini_Generated_Image_1lec2o1lec2o1lec.png)
 
-[![CC BY 3.0](https://img.shields.io/badge/license-CC%20BY%203.0-lightgrey.svg)](https://creativecommons.org/licenses/by/3.0/)
+[![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![CC BY 3.0](https://img.shields.io/badge/illustration-CC%20BY%203.0-lightgrey.svg)](https://creativecommons.org/licenses/by/3.0/)
 
 > The Go Gopher was designed by [Renée French](https://reneefrench.blogspot.com/).  
 > Licensed under [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/).  
