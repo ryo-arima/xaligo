@@ -25,7 +25,7 @@ func InitRenderCmd() *cobra.Command {
 			if output == "" {
 				output = "output.excalidraw"
 			}
-			return RunRender(input, output)
+			return RunRender(input, output, nil)
 		},
 	}
 
@@ -33,7 +33,9 @@ func InitRenderCmd() *cobra.Command {
 	return cmd
 }
 
-func RunRender(inputPath, outputPath string) error {
+// abbrevMap is an optional catalog-ID → abbreviation override derived from services.csv.
+// Pass nil to use only the built-in abbreviation table.
+func RunRender(inputPath, outputPath string, abbrevMap map[int]string) error {
 	f, err := os.Open(inputPath)
 	if err != nil {
 		return fmt.Errorf("open input file: %w", err)
@@ -61,7 +63,7 @@ func RunRender(inputPath, outputPath string) error {
 	cfg := config.New()
 	svgGroupDir := filepath.Join(cfg.AssetDir_, "Architecture-Group-Icons")
 
-	out, err := excalidraw.BuildJSON(root, svgGroupDir, cfg.SvcCatalogCSV, cfg.ProjectRoot, cfg.ItemIconSize, connections)
+	out, err := excalidraw.BuildJSON(root, svgGroupDir, cfg.SvcCatalogCSV, cfg.ProjectRoot, cfg.ItemIconSize, connections, abbrevMap)
 	if err != nil {
 		return fmt.Errorf("build excalidraw JSON: %w", err)
 	}

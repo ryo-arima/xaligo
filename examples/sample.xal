@@ -1,45 +1,157 @@
-<!-- 3-Tier Architecture: Presentation → Application → Data                            -->
-<!-- <item id="N"> uses service-catalog.csv catalog ID to embed an AWS service icon     -->
-<!-- row="N" on a subnet: number of item columns in the icon grid                       -->
-<!-- connection: elbow arrows wiring the tiers together                                 -->
-<frame width="1200" height="820" class="pa-4">
-  <aws-cloud title="AWS Cloud" margin-left="20">
-    <aws-account title="Production Account">
-      <region title="ap-northeast-1">
-        <vpc title="VPC (10.0.0.0/16)">
-          <availability-zone title="AZ: ap-northeast-1a">
+<!-- 3-Tier Architecture on AWS (Resource Icons maximized)                              -->
+<!--   Tier 1 Presentation : Route 53 → CloudFront → WAF → IGW → ALB                  -->
+<!--   Tier 2 Application  : EC2 / ECS / EKS  (App Subnet per AZ)                      -->
+<!--   Tier 3 Data         : Aurora / ElastiCache / RDS  (DB Subnet per AZ)            -->
+<!-- Resource Icons (Res_*) are placed alongside their parent service icons             -->
+<frame width="1900" height="1100" class="pa-4">
+  <aws-cloud title="AWS Cloud">
 
-            <!-- Tier 1: Presentation Layer (public-facing) -->
-            <!-- Route 53 (1179) | Internet Gateway (1581) | Elastic Load Balancing (1182) -->
-            <public-subnet title="Tier 1 — Presentation (Public Subnet)" row="3">
-              <item id="1179" />
-              <item id="1581" />
-              <item id="1182" />
-            </public-subnet>
+    <!-- ── Tier 1: Presentation — global services ── -->
+    <generic-group title="Presentation Tier – Global" align="middle-spread">
+      <item id="1179" />  <!-- Route 53          — global DNS routing -->
+      <item id="1568" />  <!-- R53 Hosted Zone   — resource: DNS hosted zone -->
+      <item id="1178" />  <!-- CloudFront        — global CDN / edge cache -->
+      <item id="1564" />  <!-- CF Distribution   — resource: download distribution -->
+      <item id="227" />   <!-- WAF               — web application firewall -->
+      <item id="216" />   <!-- IAM               — global access control -->
+      <item id="1479" />  <!-- IAM Role          — resource: IAM role -->
+    </generic-group>
 
-            <!-- Tier 2: Application Layer (business logic) -->
-            <!-- EC2 (27) | NAT Gateway (1582) -->
-            <private-subnet title="Tier 2 — Application (Private Subnet)" row="2">
-              <item id="27" />
-              <item id="1582" />
-            </private-subnet>
+    <region title="ap-northeast-1" row="9">
 
-            <!-- Tier 3: Data Layer (persistence) -->
-            <!-- Aurora (110) | ElastiCache (113) -->
-            <private-subnet title="Tier 3 — Data (Private Subnet)" row="2">
-              <item id="110" />
-              <item id="113" />
-            </private-subnet>
+      <!-- ── Regional: Serverless Compute, Storage, Observability &amp; CI/CD ── -->
+      <generic-group title="Managed &amp; Serverless" align="middle-spread">
+        <item id="13" />    <!-- Lambda            — event-driven functions -->
+        <item id="1783" />  <!-- Lambda Function   — resource: function -->
+        <item id="1020" />  <!-- S3                — object storage / static assets -->
+        <item id="1642" />  <!-- S3 Bucket         — resource: bucket -->
+        <item id="604" />   <!-- CloudWatch        — metrics, logs and alarms -->
+        <item id="1539" />  <!-- CW Alarm          — resource: alarm -->
+        <item id="1545" />  <!-- CW Logs           — resource: log group -->
+        <item id="720" />   <!-- Step Functions    — workflow orchestration -->
+        <item id="441" />   <!-- CodePipeline      — CI/CD automation -->
+        <item id="112" />   <!-- DynamoDB          — serverless NoSQL (regional) -->
+        <item id="1821" />  <!-- DDB Table         — resource: table -->
+        <item id="1820" />  <!-- DDB Stream        — resource: stream -->
+      </generic-group>
 
-          </availability-zone>
-        </vpc>
-      </region>
-    </aws-account>
+      <!-- ── Regional: Messaging, Events &amp; Governance ── -->
+      <generic-group title="Messaging, Events &amp; Governance" align="middle-spread">
+        <item id="705" />   <!-- SNS               — fan-out notifications / alerts -->
+        <item id="1506" />  <!-- SNS Topic         — resource: topic -->
+        <item id="706" />   <!-- SQS               — async decoupling queue -->
+        <item id="1509" />  <!-- SQS Queue         — resource: queue -->
+        <item id="1508" />  <!-- SQS Message       — resource: message -->
+        <item id="722" />   <!-- EventBridge       — event routing bus -->
+        <item id="1495" />  <!-- EB Custom Bus     — resource: custom event bus -->
+        <item id="1498" />  <!-- EB Rule           — resource: event rule -->
+        <item id="314" />   <!-- Macie             — sensitive-data governance -->
+      </generic-group>
+
+      <vpc title="VPC (10.0.0.0/16)" row="7">
+
+        <!-- ── VPC Edge: shared network components (not AZ-specific) ── -->
+        <generic-group title="VPC Edge" align="middle-spread">
+          <item id="1581" />  <!-- Internet Gateway  — VPC ingress / egress -->
+          <item id="1182" />  <!-- ALB               — Tier 1→2 load balancer -->
+          <item id="222" />   <!-- Secrets Manager   — credentials vault -->
+          <item id="1579" />  <!-- VPC Endpoints     — resource: private endpoints -->
+          <item id="1580" />  <!-- VPC Flow Logs     — resource: flow log -->
+        </generic-group>
+
+        <row gap="8" row="5">
+
+          <!-- ── AZ: ap-northeast-1a (Primary) ── -->
+          <col span="6">
+            <availability-zone title="AZ: ap-northeast-1a">
+              <public-subnet title="Public Subnet (10.0.0.0/24)">
+                <item id="1582" />  <!-- NAT Gateway         — AZ-specific outbound NAT -->
+              </public-subnet>
+              <!-- Tier 2: Application (primary) -->
+              <private-subnet title="App Subnet (10.0.1.0/24)" row="3">
+                <auto-scaling-group title="Auto Scaling Group">
+                  <item id="27" />    <!-- EC2                — primary application server -->
+                  <item id="1790" />  <!-- EC2 Instance       — resource: instance -->
+                  <item id="1628" />  <!-- EBS Volume         — resource: gp3 volume -->
+                </auto-scaling-group>
+                <item id="547" />   <!-- ECS                — containerised workloads -->
+                <item id="1685" />  <!-- ECS Task           — resource: task -->
+                <item id="1684" />  <!-- ECS Service        — resource: service -->
+                <item id="548" />   <!-- EKS                — Kubernetes nodes -->
+              </private-subnet>
+              <!-- Tier 3: Data (primary / write endpoint) -->
+              <private-subnet title="DB Subnet (10.0.2.0/24)" row="2">
+                <item id="110" />   <!-- Aurora Primary     — read/write endpoint -->
+                <item id="1795" />  <!-- Aurora Instance   — resource: DB instance -->
+                <item id="113" />   <!-- ElastiCache       — session / query cache -->
+              </private-subnet>
+            </availability-zone>
+          </col>
+
+          <!-- ── AZ: ap-northeast-1b (Standby / Replica) ── -->
+          <col span="6">
+            <availability-zone title="AZ: ap-northeast-1b">
+              <!-- Tier 2: Application (standby) -->
+              <private-subnet title="App Subnet (10.0.17.0/24)" row="3">
+                <auto-scaling-group title="Auto Scaling Group">
+                  <item id="27" />    <!-- EC2               — standby application server -->
+                  <item id="1791" />  <!-- EC2 Instances     — resource: multiple instances -->
+                </auto-scaling-group>
+                <item id="547" />   <!-- ECS               — standby container tasks -->
+                <item id="1683" />  <!-- ECS Service Connect — resource: service mesh -->
+                <item id="1677" />  <!-- ECR Image          — resource: container image -->
+              </private-subnet>
+              <!-- Tier 3: Data (replica / standby) -->
+              <private-subnet title="DB Subnet (10.0.18.0/24)" row="2">
+                <item id="110" />   <!-- Aurora Replica    — read-only endpoint -->
+                <item id="117" />   <!-- RDS               — Multi-AZ standby -->
+                <item id="1830" />  <!-- RDS Multi-AZ      — resource: Multi-AZ deployment -->
+                <item id="1827" />  <!-- RDS Proxy         — resource: connection proxy -->
+              </private-subnet>
+            </availability-zone>
+          </col>
+
+        </row>
+      </vpc>
+    </region>
   </aws-cloud>
 
-  <!-- Traffic flow: DNS → Load Balancer → App Server → DB / Cache -->
-  <connection src="1179" dst="1182" />
-  <connection src="1182" dst="27" />
-  <connection src="27" dst="110" />
-  <connection src="27" dst="113" />
+  <!-- ── Traffic flow: Presentation → Application → Data ── -->
+
+  <!-- Tier 1: Internet → DNS → CDN → WAF → IGW → Load Balancer -->
+  <connection src="1179" dst="1178" />   <!-- Route 53   → CloudFront -->
+  <connection src="1178" dst="227"  />   <!-- CloudFront → WAF -->
+  <connection src="227"  dst="1581" />   <!-- WAF        → Internet Gateway -->
+  <connection src="1581" dst="1182" />   <!-- IGW        → ALB -->
+
+  <!-- Tier 1 → Tier 2: Load Balancer → App servers -->
+  <connection src="1182" dst="27"   />   <!-- ALB → EC2 -->
+  <connection src="1182" dst="547"  />   <!-- ALB → ECS -->
+
+  <!-- Tier 2 → Tier 3: App → Data stores -->
+  <connection src="27"   dst="110"  />   <!-- EC2 → Aurora (primary) -->
+  <connection src="27"   dst="113"  />   <!-- EC2 → ElastiCache -->
+  <connection src="27"   dst="112"  />   <!-- EC2 → DynamoDB (VPC endpoint) -->
+  <connection src="27"   dst="1020" />   <!-- EC2 → S3 (VPC endpoint) -->
+
+  <!-- Tier 2 → Outbound: App → NAT Gateway (internet egress) -->
+  <connection src="27"   dst="1582" />   <!-- EC2 → NAT Gateway -->
+
+  <!-- Tier 2 → Messaging pipeline -->
+  <connection src="547"  dst="706"  />   <!-- ECS     → SQS -->
+  <connection src="706"  dst="13"   />   <!-- SQS     → Lambda -->
+  <connection src="13"   dst="720"  />   <!-- Lambda  → Step Functions -->
+  <connection src="722"  dst="706"  />   <!-- EventBridge → SQS (event-driven) -->
+  <connection src="13"   dst="1821" />   <!-- Lambda  → DynamoDB Table (resource write) -->
+
+  <!-- Observability: CloudWatch → SNS alert -->
+  <connection src="604"  dst="705"  />   <!-- CloudWatch  → SNS -->
+  <connection src="1539" dst="1506" />   <!-- CW Alarm    → SNS Topic (resource) -->
+
+  <!-- CI/CD: CodePipeline → deploy to ECS -->
+  <connection src="441"  dst="547"  />   <!-- CodePipeline → ECS -->
+  <connection src="441"  dst="1677" />   <!-- CodePipeline → ECR Image (push) -->
+
+  <!-- Secrets injection: Secrets Manager → App Tier -->
+  <connection src="222"  dst="27"   />   <!-- Secrets Manager → EC2 -->
 </frame>

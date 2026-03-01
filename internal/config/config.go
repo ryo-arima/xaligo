@@ -56,7 +56,7 @@ func New() *Config {
 	def.Legend.OffsetY = 0
 	def.Legend.IconSize = 32
 	def.Legend.FontSize = 12
-	def.Item.IconSize = 48.0
+	def.Item.IconSize = 32.0
 
 	yamlPath := filepath.Join(root, "etc", "resources", "aws", "app.yaml")
 	if data, err := os.ReadFile(yamlPath); err == nil {

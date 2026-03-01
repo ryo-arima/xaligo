@@ -6,5 +6,8 @@ paths:
 legend:
   offset_x:  120
   offset_y:  0
-  icon_size: 20
+  icon_size: 32
   font_size: 12
+
+item:
+  icon_size: 32

@@ -37,18 +37,26 @@ Example output:
 
 - Column 1 (`id`) as a number → icon is fetched from service-catalog.csv.
 - Lines starting with `#` are treated as comments and ignored.
-- `Abbreviation`, when set, is used as the icon label.
+- `Abbreviation`, when set, is used as the **icon label inside the diagram** and in the standalone legend icon below the frame.
+  - Takes priority over the built-in abbreviation table in `entity/service.go`.
+  - When empty, the built-in table is used as fallback.
+- `OfficialName` is displayed as the full-name text in the right-side legend column.
 
 ```csv
-# 3-tier Web Architecture service list
+# 3-tier Architecture service list — IDs must match <item> tags in the .xal file
 # Format: id,OfficialName,Abbreviation,Summary,Usage,Notes
 1179,Amazon Route 53,R53,DNS web service,Domain name resolution and health checks,
-1178,Amazon CloudFront,CF,Content Delivery Network (CDN),Fast delivery of static/dynamic content,
-1182,Elastic Load Balancing,ELB,Load balancing service,Distribute traffic across multiple instances,
+1581,Amazon VPC Internet Gateway,IGW,Internet connectivity,Inbound/outbound internet traffic,
+1182,Elastic Load Balancing,ELB,Load balancing service,Distribute traffic across EC2 instances,
 27,Amazon EC2,EC2,Virtual server,Application tier,
-1020,Amazon Simple Storage Service,S3,Object storage,Static assets and log storage,
-117,Amazon RDS,RDS,Relational database,Data persistence,
+1582,Amazon VPC NAT Gateway,NATGW,NAT gateway,Outbound internet for private subnets,
+110,Amazon Aurora,Aurora,Relational database,High-performance managed DB,
+113,Amazon ElastiCache,EC,In-memory caching,Session and query cache,
 ```
+
+> **Note:** `generate excalidraw` warns to stderr when an `<item id="N">` in the .xal
+> is not listed in services.csv, or when a services.csv entry has no corresponding
+> `<item>` in the diagram.  Keep both files in sync to suppress these warnings.
 
 Reference: [examples/services.csv](../../examples/services.csv)
 
@@ -59,29 +67,101 @@ Reference: [examples/services.csv](../../examples/services.csv)
 Use `<item id="N" />` to place service icons in the layout.
 `N` is the service ID from the first column of service-index.csv.
 
+### Choosing the right group tag
+
+Use AWS-specific group tags only when the content matches the tag's meaning.
+For logical groupings that do not correspond to a specific AWS construct, use `<generic-group>`.
+
+| Tag | When to use |
+|---|---|
+| `<public-subnet>` | Items that belong to a public (internet-routable) subnet |
+| `<private-subnet>` | Items that belong to a private subnet |
+| `<security-group>` | Resources sharing an EC2 security group |
+| `<auto-scaling-group>` | An EC2 Auto Scaling group |
+| `<generic-group>` | Any logical grouping that does not fit the above (security services, storage tiers, CI/CD, etc.) |
+
+> **Incorrect:** using `<public-subnet title="Security &amp; Identity">` for IAM / WAF — these are not subnet resources.
+> **Correct:** use `<generic-group title="Security &amp; Identity">` instead.
+
+### Service Scope Validation
+
+Before finalizing the `.xal`, verify that each service is placed at the correct scope level.
+Placing a global or regional service inside an `<availability-zone>` is misleading.
+
+| Scope | Placement in .xal | Typical services |
+|---|---|---|
+| **Global** | Direct child of `<aws-cloud>`, inside `<generic-group>` | Route 53, CloudFront, IAM, WAF |
+| **Regional** | Inside `<region>`, outside `<vpc>`, inside `<generic-group>` | Lambda, S3, CloudWatch, SQS, SNS, EventBridge, Step Functions, CodePipeline, Macie |
+| **VPC-level** | Inside `<vpc>`, outside `<availability-zone>`, inside `<generic-group>` | Internet Gateway, ELB/ALB, Secrets Manager |
+| **AZ-specific** | Inside `<availability-zone>`, in `<public-subnet>` / `<private-subnet>` | EC2, NAT Gateway, RDS instance, Aurora replica, ElastiCache node, ECS task, EKS node |
+
+> **Incorrect:** placing Route 53 or IAM inside `<availability-zone>` — these services are not AZ-bound.
+> **Correct:** group them under `<generic-group title="Global Services">` as a direct child of `<aws-cloud>`.
+
+Quick checklist:
+- [ ] Global services (Route 53, CloudFront, IAM, WAF) → outside `<region>`
+- [ ] Regional managed services (Lambda, S3, SQS, etc.) → inside `<region>`, outside `<vpc>`
+- [ ] Network edge (IGW, ELB) → inside `<vpc>`, outside `<availability-zone>`
+- [ ] Compute/DB instances → inside `<availability-zone>`
+- [ ] Services not tied to a VPC → never inside `<vpc>` or `<availability-zone>`
+
 ```xml
-<frame width="1440" height="900" class="pa-4" item-size="48">
-  <text>3-tier Web Architecture</text>
+<frame width="1440" height="900" class="pa-4">
+  <aws-cloud title="AWS Cloud">
 
-  <row gap="16">
-    <col span="4">
-      <card title="Tier 1 — Presentation" />
+    <!-- ✅ Global: outside <region> — not bound to any specific region -->
+    <generic-group title="Global Services">
       <item id="1179" />  <!-- Route 53 -->
-      <item id="1178" />  <!-- CloudFront -->
-    </col>
+      <item id="216"  />  <!-- IAM -->
+    </generic-group>
 
-    <col span="4">
-      <card title="Tier 2 — Application" />
-      <item id="1182" />  <!-- ELB -->
-      <item id="27"   />  <!-- EC2 -->
-    </col>
+    <region title="ap-northeast-1" row="8">
 
-    <col span="4">
-      <card title="Tier 3 — Data" />
-      <item id="117"  />  <!-- RDS -->
-      <item id="113"  />  <!-- ElastiCache -->
-    </col>
-  </row>
+      <!-- ✅ Regional: inside <region>, outside <vpc> — no VPC required -->
+      <generic-group title="Managed &amp; Serverless">
+        <item id="13"   />  <!-- Lambda -->
+        <item id="1020" />  <!-- S3 -->
+      </generic-group>
+
+      <vpc title="VPC (10.0.0.0/16)" row="6">
+
+        <!-- ✅ VPC-edge: inside <vpc>, outside <availability-zone> -->
+        <generic-group title="VPC Edge">
+          <item id="1581" />  <!-- Internet Gateway -->
+          <item id="1182" />  <!-- ELB -->
+        </generic-group>
+
+        <row gap="8" row="5">
+          <col span="6">
+            <availability-zone title="AZ: ap-northeast-1a">
+              <!-- ✅ AZ-specific: public-subnet for NAT Gateway -->
+              <public-subnet title="Public Subnet">
+                <item id="1582" />  <!-- NAT Gateway -->
+              </public-subnet>
+              <!-- ✅ AZ-specific: compute instances in private subnet -->
+              <private-subnet title="Application Tier" row="3">
+                <item id="27"  />   <!-- EC2 -->
+                <item id="547" />   <!-- ECS -->
+              </private-subnet>
+            </availability-zone>
+          </col>
+          <col span="6">
+            <availability-zone title="AZ: ap-northeast-1b">
+              <!-- ✅ AZ-specific: DB instances in private subnet -->
+              <private-subnet title="Data Tier">
+                <item id="117" />   <!-- RDS -->
+                <item id="110" />   <!-- Aurora -->
+              </private-subnet>
+            </availability-zone>
+          </col>
+        </row>
+
+      </vpc>
+    </region>
+  </aws-cloud>
+
+  <connection src="1182" dst="27" />
+  <connection src="27"   dst="117" />
 </frame>
 ```
 

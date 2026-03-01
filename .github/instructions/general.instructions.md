@@ -104,6 +104,16 @@ item:
   icon_size: 48   # default max icon size for <item> elements (px). Overridable with <frame item-size="N">
 ```
 
+## Icon Label Resolution
+
+When rendering `<item>` icons, the short label below each icon is determined in the following priority order:
+
+1. **`Abbreviation` column in services.csv** — used when `generate excalidraw --services <csv>` is invoked and the entry for that catalog ID has a non-empty `Abbreviation`.
+2. **Built-in `itemAbbreviations` table** (`internal/entity/service.go`) — fallback for any ID not covered by services.csv, and the only source when using `render` directly.
+
+This means `services.csv` is the single source of truth for icon labels in `generate excalidraw` workflows.  
+The `OfficialName` column is only used for the full-text label in the right-side legend — never as an icon label.
+
 ## CLI Command Reference
 
 | Command | Description |

@@ -3,8 +3,12 @@ package controller
 import (
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 
+	"github.com/ryo-arima/xaligo/internal/model"
+	"github.com/ryo-arima/xaligo/internal/parser"
+	"github.com/ryo-arima/xaligo/internal/repository"
 	"github.com/spf13/cobra"
 )
 
@@ -112,7 +116,18 @@ func initGenerateExcalidrawCmd() *cobra.Command {
 		Use:   "excalidraw",
 		Short: "Render a .xal file into a .excalidraw file",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if err := RunRender(xalPath, output); err != nil {
+			warnServiceMismatch(xalPath, servicesFile)
+			entries, err := repository.ReadServiceList(servicesFile)
+			if err != nil {
+				return fmt.Errorf("read services %s: %w", servicesFile, err)
+			}
+			abbrevMap := make(map[int]string, len(entries))
+			for _, e := range entries {
+				if e.CatalogID > 0 && e.Abbreviation != "" {
+					abbrevMap[e.CatalogID] = e.Abbreviation
+				}
+			}
+			if err := RunRender(xalPath, output, abbrevMap); err != nil {
 				return err
 			}
 			return RunAddServiceBatch(output, servicesFile)
@@ -279,4 +294,75 @@ func buildXAL(W, H, nClouds, nAccounts, nRegions, nAZs int, azLayout string, nSu
 
 	b.sb.WriteString("</frame>\n")
 	return b.sb.String()
+}
+
+// ── Service mismatch warning ──────────────────────────────────────────────────
+
+// warnServiceMismatch compares the <item> catalog IDs in the .xal file with the
+// catalog IDs listed in the services CSV and prints a warning to stderr for any
+// ID that appears in one source but not the other.  Errors are silently ignored
+// so that a bad path never blocks the main generate command.
+func warnServiceMismatch(xalPath, servicesFile string) {
+	// ── collect item IDs from .xal ───────────────────────────────────────────
+	xalFile, err := os.Open(xalPath)
+	if err != nil {
+		return
+	}
+	defer xalFile.Close()
+
+	doc, err := parser.Parse(xalFile)
+	if err != nil {
+		return
+	}
+	itemIDs := collectItemIDs(doc.Root)
+	itemIDSet := make(map[int]bool, len(itemIDs))
+	for _, id := range itemIDs {
+		itemIDSet[id] = true
+	}
+
+	// ── collect IDs from services CSV ────────────────────────────────────────
+	entries, err := repository.ReadServiceList(servicesFile)
+	if err != nil {
+		return
+	}
+	svcIDSet := make(map[int]string, len(entries)) // id → OfficialName
+	for _, e := range entries {
+		if e.CatalogID > 0 {
+			svcIDSet[e.CatalogID] = e.OfficialName
+		}
+	}
+
+	// ── warn: in diagram but not in services.csv ─────────────────────────────
+	for id := range itemIDSet {
+		if _, ok := svcIDSet[id]; !ok {
+			fmt.Fprintf(os.Stderr, "warn: <item id=%d> appears in the diagram but is not listed in services.csv\n", id)
+		}
+	}
+
+	// ── warn: in services.csv but not in diagram ─────────────────────────────
+	for id, name := range svcIDSet {
+		if !itemIDSet[id] {
+			fmt.Fprintf(os.Stderr, "warn: service %q (id=%d) is listed in services.csv but has no <item> in the diagram\n", name, id)
+		}
+	}
+}
+
+// collectItemIDs recursively walks the DSL AST and returns the integer catalog
+// IDs referenced by every <item id="N"> element found in the tree.
+func collectItemIDs(node *model.Node) []int {
+	if node == nil {
+		return nil
+	}
+	var ids []int
+	if node.Tag == "item" {
+		if idStr, ok := node.Attrs["id"]; ok {
+			if id, err := strconv.Atoi(strings.TrimSpace(idStr)); err == nil {
+				ids = append(ids, id)
+			}
+		}
+	}
+	for _, child := range node.Children {
+		ids = append(ids, collectItemIDs(child)...)
+	}
+	return ids
 }

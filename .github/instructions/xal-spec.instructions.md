@@ -58,7 +58,9 @@ Lays out children **horizontally** in a 12-column grid.
 | Attribute | Type | Default | Description |
 |---|---|---|---|
 | `gap` | float | `16` | Column spacing (px) |
-| `border` | string | — | Set to `"none"` to hide the border |
+
+> `<row>` is a **pure layout tag** — it does not render any border or label in the output.
+> The `<col>` children are also pure layout containers.
 
 ### `<col>`
 
@@ -220,6 +222,55 @@ Available on `frame` / `container` / `col` and all AWS group tags.
 | `layout` | `"horizontal"` | Arrange children **horizontally** with proportional widths (use the `col` attribute for ratio) |
 | `layout` | `"staggered"` | Stack children with a depth offset (AWS group tags only) |
 | `gap` | float | Child spacing (px). Default `16` |
+| `align` | `"{vertical}-{horizontal}"` | Position of `<item>` icons within the container's content area. Default `"middle-center"` |
+
+**`align` values** — combine a vertical part and a horizontal part with `-`:
+
+| Part | Values |
+|---|---|
+| vertical | `top` \| `middle` \| `bottom` |
+| horizontal | `left` \| `center` \| `right` \| `spread` |
+
+All 12 combinations are valid: `top-left`, `top-center`, `top-right`, `top-spread`, `middle-left`, `middle-center`, `middle-right`, `middle-spread`, `bottom-left`, `bottom-center`, `bottom-right`, `bottom-spread`.
+
+> **`center` (default):** icons are packed together and the group is centred within the available area
+> (equivalent to CSS `justify-content: center`).
+>
+> **`spread`:** icons are distributed with equal gaps between each icon and the container edges
+> (equivalent to CSS `justify-content: space-evenly`).
+>
+> **`left` / `right`:** icons are packed at the respective edge with a fixed `8 px` gap between icons.
+
+> **Inline placement (AWS group tags only):** when the natural (space-constrained) icon size would be ≤ 32 px,
+> items are placed **inline with the header** (to the right of the label text, vertically centred in the
+> 32 px header band) regardless of the vertical `align` setting, to avoid wasted whitespace below.
+> The horizontal part of `align` controls placement in inline mode:
+> `center` packs icons and centres them within the group width;
+> `spread` distributes icons with equal gaps across the full group width;
+> `left` packs icons immediately after the header text;
+> `right` packs icons at the right edge.
+
+```xml
+<!-- Icons centred vertically and horizontally inside the group (default) -->
+<private-subnet title="App Tier" align="middle-center">
+  <item id="27" />
+  <item id="547" />
+</private-subnet>
+
+<!-- Icons spread evenly across the full width -->
+<generic-group title="Global Services" align="middle-spread">
+  <item id="1179" />
+  <item id="1178" />
+  <item id="216" />
+  <item id="227" />
+</generic-group>
+
+<!-- Icons pinned to the top-left -->
+<generic-group title="Security" align="top-left">
+  <item id="216" />
+  <item id="227" />
+</generic-group>
+```
 
 ### Child Size Ratio Attributes
 

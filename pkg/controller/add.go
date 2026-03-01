@@ -76,7 +76,7 @@ Examples:
 				entries = []entity.ServiceEntry{{OfficialName: name}}
 			}
 
-			return runAddBatch(targetFile, entries, category, size, noLegend, isBatch)
+			return runAddBatch(targetFile, entries, category, size, noLegend, isBatch, false)
 		},
 	}
 
@@ -101,13 +101,15 @@ func RunAddServiceBatch(targetFile, listFile string) error {
 	if err != nil {
 		return fmt.Errorf("read list %s: %w", listFile, err)
 	}
-	return runAddBatch(targetFile, entries, "", 64, false, true)
+	return runAddBatch(targetFile, entries, "", 32, false, true, false)
 }
 
 // runAddBatch is the shared implementation used by both the --list flag and
 // RunAddServiceBatch. legendRight=true places legend entries on the right of
-// the frame; false places them on the left.
-func runAddBatch(targetFile string, entries []entity.ServiceEntry, category string, size int, noLegend, legendRight bool) error {
+// the frame; false places them on the left. legendOnly=true skips the standalone
+// main icon placed outside the frame (used by generate excalidraw, where <item>
+// tags already render icons inside the frame via the render path).
+func runAddBatch(targetFile string, entries []entity.ServiceEntry, category string, size int, noLegend, legendRight, legendOnly bool) error {
 	cfg := config.New()
 	scene, err := repository.ReadScene(targetFile)
 	if err != nil {
@@ -117,8 +119,8 @@ func runAddBatch(targetFile string, entries []entity.ServiceEntry, category stri
 	fb := frameBounds(scene)
 	iconSize := float64(size)
 	gap := float64(16)
-	lgSz := float64(32)
-	lgLabelW := float64(120)
+	lgSz := float64(32) // matches itemMaxSize in scene.go
+	lgLabelW := float64(220)
 
 	for _, entry := range entries {
 		var dataURL string
@@ -165,23 +167,31 @@ func runAddBatch(targetFile string, entries []entity.ServiceEntry, category stri
 			}
 		}
 
-		// Main icon (outside-bottom of frame)
-		ix, iy := nextIconPos(scene, fb, iconSize, gap)
-		iconID := "svc-" + randomHex(8)
-		seedVal := int(ix*100 + iy)
-		iconEl := repository.MakeImage(iconID, ix, iy, iconSize, iconSize, fileID, bgColor, seedVal)
-		scene.Elements = append(scene.Elements, iconEl)
+		// Compute a deterministic seed from the legend position so that
+		// legendOnly mode still gets a reasonable seed.
+		var seedVal int
 
-		// Label below main icon
-		label := entry.ShortLabel()
-		if label == "" {
-			label = shortServiceName(displayName)
+		// Main icon (outside-bottom of frame) — omitted in legend-only mode.
+		if !legendOnly {
+			ix, iy := nextIconPos(scene, fb, iconSize, gap)
+			iconID := "svc-" + randomHex(8)
+			seedVal = int(ix*100 + iy)
+			iconEl := repository.MakeImage(iconID, ix, iy, iconSize, iconSize, fileID, bgColor, seedVal)
+			scene.Elements = append(scene.Elements, iconEl)
+
+			// Label below main icon: max 6 chars, center-aligned, width fitted to 6 chars.
+			label := truncateLabel(entry.ShortLabel(), 6)
+			if label == "" {
+				label = truncateLabel(entity.ItemShortName(displayName), 6)
+			}
+			const lblW = 50.0 // fits 6 chars at 11px Inter with margin
+			lblX := ix + iconSize/2 - lblW/2 // center under icon
+			labelID := "svc-lbl-" + randomHex(8)
+			labelEl := repository.MakeText(labelID, lblX, iy+iconSize+4, lblW, 20, label, 11, "#000000", false, "center", seedVal+1)
+			scene.Elements = append(scene.Elements, labelEl)
 		}
-		labelID := "svc-lbl-" + randomHex(8)
-		labelEl := repository.MakeText(labelID, ix, iy+iconSize+4, iconSize+24, 20, label, 12, "#000000", false, seedVal+1)
-		scene.Elements = append(scene.Elements, labelEl)
 
-		// Legend entry
+		// Legend entry — shows official name for readability.
 		if !noLegend {
 			var lgX, lgY float64
 			if legendRight {
@@ -189,12 +199,18 @@ func runAddBatch(targetFile string, entries []entity.ServiceEntry, category stri
 			} else {
 				lgX, lgY = nextLegendPosLeft(scene, fb, lgSz, lgLabelW, gap)
 			}
+			if legendOnly {
+				seedVal = int(lgX*100 + lgY)
+			}
+			// Use the official name in the legend (full readable name),
+			// e.g. "Amazon EC2" rather than the abbreviation "EC2".
+			lgLabel := displayName
 			lgID := "svc-" + randomHex(8) + "-lg-ico"
 			lgEl := repository.MakeImage(lgID, lgX, lgY, lgSz, lgSz, fileID, bgColor, seedVal+2)
 			scene.Elements = append(scene.Elements, lgEl)
 
 			lgLblID := "svc-lbl-" + randomHex(8) + "-lg"
-			lgLblEl := repository.MakeText(lgLblID, lgX+lgSz+6, lgY+(lgSz-14)/2, lgLabelW, 20, label, 12, "#000000", false, seedVal+3)
+			lgLblEl := repository.MakeText(lgLblID, lgX+lgSz+6, lgY+(lgSz-14)/2, lgLabelW, 20, lgLabel, 11, "#000000", false, "left", seedVal+3)
 			scene.Elements = append(scene.Elements, lgLblEl)
 		}
 	}
@@ -297,8 +313,8 @@ func nextIconPos(scene *entity.Scene, fb frameBBox, iconSize, gap float64) (x, y
 // When the legend reaches frame height, it adds a new column to the right.
 func nextLegendPosRight(scene *entity.Scene, fb frameBBox, lgSz, lgLabelW, gap float64) (x, y float64) {
 	baseX := fb.x + fb.w + 40
-	rowStep := lgSz + gap
-	rowsPerCol := int(math.Floor((fb.h + gap) / rowStep))
+	rowStep := lgSz + 6
+	rowsPerCol := int(math.Floor((fb.h + 6) / rowStep))
 	if rowsPerCol < 1 {
 		rowsPerCol = 1
 	}
@@ -327,8 +343,8 @@ func nextLegendPosRight(scene *entity.Scene, fb frameBBox, lgSz, lgLabelW, gap f
 // When the legend reaches frame height, it adds a new column to the left.
 func nextLegendPosLeft(scene *entity.Scene, fb frameBBox, lgSz, lgLabelW, gap float64) (x, y float64) {
 	baseX := fb.x - lgSz - lgLabelW - 20
-	rowStep := lgSz + gap
-	rowsPerCol := int(math.Floor((fb.h + gap) / rowStep))
+	rowStep := lgSz + 6
+	rowsPerCol := int(math.Floor((fb.h + 6) / rowStep))
 	if rowsPerCol < 1 {
 		rowsPerCol = 1
 	}
@@ -381,15 +397,14 @@ func randomHex(n int) string {
 	return fmt.Sprintf("%x", b)
 }
 
-// shortServiceName strips common cloud prefixes ("Amazon ", "AWS ") to produce
-// a compact label suitable for narrow icon slots.
-func shortServiceName(name string) string {
-	for _, pfx := range []string{"Amazon ", "AWS "} {
-		if strings.HasPrefix(name, pfx) {
-			return name[len(pfx):]
-		}
+// truncateLabel shortens s to at most max runes.
+// Labels are already abbreviations, so no ellipsis is appended.
+func truncateLabel(s string, max int) string {
+	r := []rune(s)
+	if len(r) <= max {
+		return s
 	}
-	return name
+	return string(r[:max])
 }
 
 // normalizeSvgName derives a display name from an SVG filename.

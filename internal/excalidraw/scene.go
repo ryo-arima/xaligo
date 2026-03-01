@@ -13,6 +13,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/ryo-arima/xaligo/internal/entity"
 	"github.com/ryo-arima/xaligo/internal/layout"
 	"github.com/ryo-arima/xaligo/internal/model"
 	"github.com/ryo-arima/xaligo/internal/repository"
@@ -83,10 +84,11 @@ func staggerBGColor(b *layout.Box) string {
 }
 
 const (
-	itemMaxSize = 48.0
-	itemMinSize = 16.0
-	itemLabelH  = 14.0
-	itemGap     = 8.0
+	itemMaxSize  = 32.0
+	itemMinSize  = 16.0
+	itemLabelH   = 14.0
+	itemLabelW   = 56.0 // text box width for item labels (wider than icon, centred on icon)
+	itemGap      = 8.0
 )
 
 // paperSizeNames maps (short-side, long-side) → paper name for reverse lookup.
@@ -136,7 +138,9 @@ func svgDataURL(path string) (string, error) {
 // itemIconSize: default maximum icon size (px) for <item> elements;
 //               the <frame item-size="N"> attribute overrides this value.
 // connections:  <connection> nodes extracted from the DSL (may be nil).
-func BuildJSON(root *layout.Box, svgGroupDir string, catalogCSV string, projectRoot string, itemIconSize float64, connections []*model.Node) ([]byte, error) {
+// abbrevMap is an optional catalog-ID → abbreviation map derived from services.csv.
+// When provided, its entries take priority over the built-in itemAbbreviations table.
+func BuildJSON(root *layout.Box, svgGroupDir string, catalogCSV string, projectRoot string, itemIconSize float64, connections []*model.Node, abbrevMap map[int]string) ([]byte, error) {
 	if root == nil {
 		return nil, fmt.Errorf("root layout is nil")
 	}
@@ -183,7 +187,7 @@ func BuildJSON(root *layout.Box, svgGroupDir string, catalogCSV string, projectR
 
 	walk(root, &elements, files, svgGroupDir, catalogCSV, projectRoot, r, root, itemGroups, ancestorBoxes)
 	for ancID, items := range itemGroups {
-		renderItemGrid(items, ancestorBoxes[ancID], &elements, files, catalogCSV, projectRoot, itemIconSize, r, itemImgRects, itemLblRects, itemImgIDs, itemLblIDs)
+		renderItemGrid(items, ancestorBoxes[ancID], &elements, files, catalogCSV, projectRoot, itemIconSize, r, itemImgRects, itemLblRects, itemImgIDs, itemLblIDs, abbrevMap)
 	}
 	renderConnections(connections, itemImgRects, itemLblRects, itemImgIDs, itemLblIDs, &elements, r)
 
@@ -310,7 +314,7 @@ func walk(b *layout.Box, elements *[]map[string]any, files map[string]any, svgGr
 				"textAlign": "left", "verticalAlign": "middle",
 				"containerId": nil, "originalText": b.Label, "lineHeight": 1.25,
 			})
-		} else {
+		} else if !isLayoutTag(b.Tag) {
 			// ── Generic tag: rectangle + label ──────────────────────
 			rectID := fmt.Sprintf("%s-rect", b.ID)
 			textID := fmt.Sprintf("%s-text", b.ID)
@@ -367,117 +371,10 @@ func walk(b *layout.Box, elements *[]map[string]any, files map[string]any, svgGr
 	}
 }
 
-// itemAbbreviations maps the service name (after stripping "Amazon "/"AWS " prefix)
-// to its well-known abbreviation. Add entries freely; anything not found falls back
-// to the prefix-stripped name.
-var itemAbbreviations = map[string]string{
-	// Networking & Content Delivery
-	"CloudFront":                       "CF",
-	"Route 53":                         "R53",
-	"Virtual Private Cloud":            "VPC",
-	"Elastic Load Balancing":           "ELB",
-	"App Mesh":                         "AppMesh",
-	"Private 5G":                       "P5G",
-	"Direct Connect":                   "DX",
-	"API Gateway":                      "APIGW",
-	"Transit Gateway":                  "TGW",
-	"Global Accelerator":               "GA",
-	"PrivateLink":                      "PL",
-	// Compute
-	"EC2":                              "EC2",
-	"EC2 Auto Scaling":                 "ASG",
-	"Lambda":                           "Lambda",
-	"Elastic Container Service":        "ECS",
-	"Elastic Kubernetes Service":       "EKS",
-	"Fargate":                          "Fargate",
-	"Elastic Beanstalk":                "EB",
-	"Batch":                            "Batch",
-	// Storage
-	"Simple Storage Service":           "S3",
-	"Elastic File System":              "EFS",
-	"S3 Glacier":                       "Glacier",
-	"Storage Gateway":                  "SGW",
-	"Backup":                           "Backup",
-	// Database
-	"RDS":                              "RDS",
-	"DynamoDB":                         "DDB",
-	"ElastiCache":                      "ElastiCache",
-	"Redshift":                         "RS",
-	"Neptune":                          "Neptune",
-	"DocumentDB":                       "DocDB",
-	"QLDB":                             "QLDB",
-	// Analytics
-	"Kinesis":                          "Kinesis",
-	"Athena":                           "Athena",
-	"Glue":                             "Glue",
-	"EMR":                              "EMR",
-	"OpenSearch Service":               "OSS",
-	"QuickSight":                       "QS",
-	"Lake Formation":                   "LF",
-	"MSK":                              "MSK",
-	// Application Integration
-	"Simple Queue Service":             "SQS",
-	"Simple Notification Service":      "SNS",
-	"EventBridge":                      "EB",
-	"Step Functions":                   "SF",
-	"MQ":                               "MQ",
-	"AppSync":                          "AppSync",
-	// Management & Governance
-	"CloudWatch":                       "CW",
-	"CloudFormation":                   "CFn",
-	"CloudTrail":                       "CT",
-	"Systems Manager":                  "SSM",
-	"Organizations":                    "Orgs",
-	"Control Tower":                    "CT",
-	"Service Catalog":                  "SC",
-	"Trusted Advisor":                  "TA",
-	// Security, Identity & Compliance
-	"Identity and Access Management":   "IAM",
-	"Cognito":                          "Cognito",
-	"Secrets Manager":                  "SM",
-	"Key Management Service":           "KMS",
-	"Certificate Manager":              "ACM",
-	"WAF":                              "WAF",
-	"Shield":                           "Shield",
-	"GuardDuty":                        "GD",
-	"Security Hub":                     "SH",
-	// Developer Tools
-	"CodeDeploy":                       "CD",
-	"CodePipeline":                     "CP",
-	"CodeBuild":                        "CB",
-	"CodeCommit":                       "CC",
-	"CodeArtifact":                     "CA",
-	"CodeStar":                         "CS",
-	// Machine Learning
-	"SageMaker":                        "SM",
-	"Rekognition":                      "Rekog",
-	"Bedrock":                          "Bedrock",
-	// Containers
-	"Elastic Container Registry":       "ECR",
-	// Migration
-	"Database Migration Service":       "DMS",
-	"DataSync":                         "DS",
-	"Transfer Family":                  "TF",
-	// End User Computing
-	"WorkSpaces Family":                "WorkSpaces",
-	"AppStream 2":                      "AppStream",
-}
-
-// itemShortName returns a compact label for an AWS service icon.
-// It first strips the "Amazon " or "AWS " prefix, then looks up the result
-// in itemAbbreviations. If no entry is found, the prefix-stripped name is used.
-func itemShortName(name string) string {
-	short := name
-	for _, pfx := range []string{"Amazon ", "AWS "} {
-		if strings.HasPrefix(name, pfx) {
-			short = name[len(pfx):]
-			break
-		}
-	}
-	if abbr, ok := itemAbbreviations[short]; ok {
-		return abbr
-	}
-	return short
+// isLayoutTag reports whether a tag is a pure layout container
+// (<row>, <col>, <container>) that should not render any visible border or label.
+func isLayoutTag(tag string) bool {
+	return tag == "row" || tag == "col" || tag == "container"
 }
 
 // textWidth estimates the rendered width of a string in pixels.
@@ -486,38 +383,146 @@ func textWidth(s string, charW float64) float64 {
 	return math.Ceil(float64(len([]rune(s)))*charW) + 8
 }
 
+// parseItemAlign parses an align attribute value (e.g. "top-left", "middle-center")
+// into vertical ("top"/"middle"/"bottom") and horizontal ("left"/"center"/"right") parts.
+// Defaults to "middle" / "center" when absent or unrecognised.
+func parseItemAlign(align string) (vert, horiz string) {
+	vert, horiz = "middle", "center"
+	parts := strings.SplitN(strings.ToLower(strings.TrimSpace(align)), "-", 2)
+	if len(parts) == 2 {
+		if parts[0] == "top" || parts[0] == "middle" || parts[0] == "bottom" {
+			vert = parts[0]
+		}
+		if parts[1] == "left" || parts[1] == "center" || parts[1] == "right" || parts[1] == "spread" {
+			horiz = parts[1]
+		}
+	}
+	return
+}
+
 // renderItemGrid lays out all items collected under the same visibleAncestor
-// as a single horizontal row (no line wrap) within that ancestor's bounds.
-// Items are placed below the group header row (GroupTopInset) for AWS group ancestors
-// so they don't overlap the header icon/label.
-func renderItemGrid(items []*layout.Box, ancestor *layout.Box, elements *[]map[string]any, files map[string]any, catalogCSV string, projectRoot string, maxSize float64, r *rand.Rand, itemImgRects map[int][4]float64, itemLblRects map[int][4]float64, itemImgIDs map[int]string, itemLblIDs map[int]string) {
+// as a single horizontal row within the ancestor's content area.
+//
+// Alignment of the row within the content area is controlled by the ancestor's
+// `align` attribute (e.g. "top-left", "middle-center", "bottom-right").
+// Default is "middle-center".
+//
+// For AWS group ancestors the content area starts below the header row.
+// Exception: when the natural (space-constrained, uncapped) icon size is ≤ 32 px,
+// items are placed inline with the header (right of the label, centred in the
+// 32 px header band) to avoid wasting the large empty space below.
+func renderItemGrid(items []*layout.Box, ancestor *layout.Box, elements *[]map[string]any, files map[string]any, catalogCSV string, projectRoot string, maxSize float64, r *rand.Rand, itemImgRects map[int][4]float64, itemLblRects map[int][4]float64, itemImgIDs map[int]string, itemLblIDs map[int]string, abbrevMap map[int]string) {
 	if catalogCSV == "" || len(items) == 0 || ancestor == nil {
 		return
 	}
 	n := float64(len(items))
+	vert, horiz := parseItemAlign(ancestor.Attrs["align"])
 
-	var itemStartX, iconY, availW, iconSizeH float64
+	var areaX, areaY, areaW, areaH float64
 
 	if _, isGroup := awsGroups[ancestor.Tag]; isGroup {
-		// AWS グループタグ: ヘッダー（アイコン＋ラベル）はトップに固定されているため
-		// アイテムはヘッダー下から配置する。
-		itemStartX = ancestor.X + layout.GroupSideInset
-		availW = ancestor.W - layout.GroupSideInset*2
-		iconY = ancestor.Y + layout.GroupTopInset + itemGap
-		iconSizeH = ancestor.H - layout.GroupTopInset - itemGap - itemLabelH - 4
+		// When a group's children are ALL items, layout.go used layoutRow (no GroupTopInset).
+		// In that case we must also skip the topInset here so icons aren't pushed off-screen.
+		allItemChildren := true
+		for _, ch := range ancestor.Children {
+			if !layout.IsItemLike(ch.Tag) {
+				allItemChildren = false
+				break
+			}
+		}
+
+		if allItemChildren {
+			// No topInset: treat like a generic container but respect side insets.
+			areaX = ancestor.X + layout.GroupSideInset
+			areaY = ancestor.Y + itemGap
+			areaW = ancestor.W - layout.GroupSideInset*2
+			areaH = ancestor.H - itemGap*2 - itemLabelH - 4
+		} else {
+			// Content area: below the header row.
+			areaX = ancestor.X + layout.GroupSideInset
+			areaY = ancestor.Y + layout.GroupTopInset + itemGap
+			areaW = ancestor.W - layout.GroupSideInset*2
+			areaH = ancestor.H - layout.GroupTopInset - itemGap*2 - itemLabelH - 4
+
+			// Natural (uncapped) icon size — used only to decide inline vs below-header.
+			naturalW := (areaW - itemGap*(n-1)) / n
+			naturalH := areaH
+			naturalSize := naturalW
+			if naturalH < naturalSize {
+				naturalSize = naturalH
+			}
+
+			// Inline placement when natural size ≤ 32: icons fit beside the header text.
+			if naturalSize <= 32 {
+				gd := awsGroups[ancestor.Tag]
+				var headerTextStartX float64
+				if gd.IconFile != "" {
+					headerTextStartX = ancestor.X + float64(groupIconSize) + 4
+				} else {
+					headerTextStartX = ancestor.X + 4
+				}
+				headerEndX := headerTextStartX + textWidth(ancestor.Label, 7.5) + itemGap
+				inlineAvailW := (ancestor.X + ancestor.W - layout.GroupSideInset) - headerEndX
+				if inlineAvailW >= itemMinSize {
+					inlineSizeW := (inlineAvailW - itemGap*(n-1)) / n
+					inlineSize := inlineSizeW
+					if float64(groupIconSize) < inlineSize {
+						inlineSize = float64(groupIconSize)
+					}
+					if inlineSize > maxSize {
+						inlineSize = maxSize
+					}
+					if inlineSize >= itemMinSize {
+						// Vertically centre within the 32 px header band.
+						iconY := ancestor.Y + math.Max(0, (float64(groupIconSize)-inlineSize)/2)
+						totalW := inlineSize*n + itemGap*(n-1)
+					var startX, stepX float64
+					switch horiz {
+					case "right":
+						startX = ancestor.X + ancestor.W - layout.GroupSideInset - totalW
+						stepX = inlineSize + itemGap
+					case "spread":
+						// space-evenly across full ancestor width.
+						if n <= 1 {
+							startX = ancestor.X + math.Max(0, (ancestor.W-inlineSize)/2)
+							stepX = 0
+						} else {
+							evenGap := (ancestor.W - inlineSize*n) / (n + 1)
+							if evenGap < itemGap {
+								evenGap = itemGap
+							}
+							startX = ancestor.X + evenGap
+							stepX = inlineSize + evenGap
+						}
+					case "center":
+						startX = ancestor.X + math.Max(0, (ancestor.W-totalW)/2)
+						stepX = inlineSize + itemGap
+					default: // "left"
+						startX = headerEndX
+						stepX = inlineSize + itemGap
+						}
+						for i, item := range items {
+							iconX := startX + float64(i)*stepX
+							renderIconAt(item.ID, item.Attrs["id"], iconX, iconY, inlineSize, elements, files, catalogCSV, projectRoot, r, itemImgRects, itemLblRects, itemImgIDs, itemLblIDs, abbrevMap)
+						}
+						return
+					}
+				}
+			}
+		}
 	} else {
-		// 汎用コンテナ (frame, container, col など): 上端 + gap から配置。
-		itemStartX = ancestor.X + itemGap
-		availW = ancestor.W - itemGap*2
-		iconY = ancestor.Y + itemGap
-		iconSizeH = ancestor.H - itemGap*2 - itemLabelH - 4
+		// 汎用コンテナ (frame, container, col など).
+		areaX = ancestor.X + itemGap
+		areaY = ancestor.Y + itemGap
+		areaW = ancestor.W - itemGap*2
+		areaH = ancestor.H - itemGap*2 - itemLabelH - 4
 	}
 
-	iconSizeW := (availW - itemGap*(n-1)) / n
-
+	// ── Compute icon size within content area ────────────────────────────────
+	iconSizeW := (areaW - itemGap*(n-1)) / n
 	iconSize := iconSizeW
-	if iconSizeH < iconSize {
-		iconSize = iconSizeH
+	if areaH < iconSize {
+		iconSize = areaH
 	}
 	if iconSize > maxSize {
 		iconSize = maxSize
@@ -526,16 +531,59 @@ func renderItemGrid(items []*layout.Box, ancestor *layout.Box, elements *[]map[s
 		iconSize = itemMinSize
 	}
 
+	totalW := iconSize*n + itemGap*(n-1)
+
+	// ── Horizontal placement ───────────────────────────────────────────────
+	// "center" (default): pack icons and centre the group within the area.
+	// "spread": space-evenly — equal gaps between icons and edges.
+	// "left" / "right": pack icons at the respective edge.
+	var startX float64
+	var stepX float64
+	switch horiz {
+	case "left":
+		startX = areaX
+		stepX = iconSize + itemGap
+	case "right":
+		startX = areaX + areaW - totalW
+		stepX = iconSize + itemGap
+	case "spread":
+		if n <= 1 {
+			startX = areaX + math.Max(0, (areaW-iconSize)/2)
+			stepX = 0
+		} else {
+			evenGap := (areaW - iconSize*n) / (n + 1)
+			if evenGap < itemGap {
+				evenGap = itemGap
+			}
+			startX = areaX + evenGap
+			stepX = iconSize + evenGap
+		}
+	default: // "center" — pack and centre
+		startX = areaX + math.Max(0, (areaW-totalW)/2)
+		stepX = iconSize + itemGap
+	}
+
+	// ── Vertical alignment ───────────────────────────────────────────────────
+	var iconY float64
+	switch vert {
+	case "top":
+		iconY = areaY
+	case "bottom":
+		iconY = areaY + math.Max(0, areaH-iconSize)
+	default: // "middle"
+		iconY = areaY + math.Max(0, (areaH-iconSize)/2)
+	}
+
 	for i, item := range items {
-		iconX := itemStartX + float64(i)*(iconSize+itemGap)
-		renderIconAt(item.ID, item.Attrs["id"], iconX, iconY, iconSize, elements, files, catalogCSV, projectRoot, r, itemImgRects, itemLblRects, itemImgIDs, itemLblIDs)
+		iconX := startX + float64(i)*stepX
+		renderIconAt(item.ID, item.Attrs["id"], iconX, iconY, iconSize, elements, files, catalogCSV, projectRoot, r, itemImgRects, itemLblRects, itemImgIDs, itemLblIDs, abbrevMap)
 	}
 }
 
 // renderIconAt draws a single service icon (image + label) at an explicit position.
 // itemImgRects/itemLblRects/itemImgIDs/itemLblIDs are populated with the bounding rect
 // and element ID of the image and label elements, keyed by the catalog integer ID.
-func renderIconAt(boxID, idAttr string, iconX, iconY, iconSize float64, elements *[]map[string]any, files map[string]any, catalogCSV string, projectRoot string, r *rand.Rand, itemImgRects map[int][4]float64, itemLblRects map[int][4]float64, itemImgIDs map[int]string, itemLblIDs map[int]string) {
+func renderIconAt(boxID, idAttr string, iconX, iconY, iconSize float64, elements *[]map[string]any, files map[string]any, catalogCSV string, projectRoot string, r *rand.Rand, itemImgRects map[int][4]float64, itemLblRects map[int][4]float64, itemImgIDs map[int]string, itemLblIDs map[int]string, abbrevMap map[int]string) {
 	if catalogCSV == "" {
 		return
 	}
@@ -597,18 +645,25 @@ func renderIconAt(boxID, idAttr string, iconX, iconY, iconSize float64, elements
 		"isDeleted": false, "boundElements": nil,
 		"updated": updated, "link": nil, "locked": false, "frameId": nil,
 	})
-	label := itemShortName(ce.Service)
+	var label string
+	if abbrevMap != nil {
+		label = abbrevMap[id]
+	}
+	if label == "" {
+		label = entity.ItemShortName(ce.Service)
+	}
 	labelY := iconY + iconSize + 4
+	labelX := iconX + (iconSize-itemLabelW)/2 // centre label on icon
 	// Record label bounding rect for bottom-side connection binding.
 	if itemLblRects != nil {
-		itemLblRects[id] = [4]float64{iconX, labelY, iconSize, itemMaxSize + 2}
+		itemLblRects[id] = [4]float64{labelX, labelY, itemLabelW, itemMaxSize + 2}
 		itemLblIDs[id] = iconID + "-lbl"
 	}
 	textSeed := r.Intn(99999999)
 	*elements = append(*elements, map[string]any{
 		"id": iconID + "-lbl", "type": "text",
-		"x": iconX, "y": labelY,
-		"width": iconSize, "height": itemMaxSize + 2,
+		"x": labelX, "y": labelY,
+		"width": itemLabelW, "height": itemMaxSize + 2,
 		"angle": 0,
 		"strokeColor": "#1e1e1e", "backgroundColor": "transparent",
 		"fillStyle": "solid", "strokeWidth": 1, "strokeStyle": "solid",

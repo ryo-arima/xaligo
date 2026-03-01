@@ -27,7 +27,8 @@ func base(id string, x, y, w, h float64, seed int) map[string]interface{} {
 }
 
 // MakeText builds an Excalidraw text element.
-func MakeText(id string, x, y, w, h float64, text string, fontSize int, color string, bold bool, seed int) map[string]interface{} {
+// textAlign should be "left", "center", or "right".
+func MakeText(id string, x, y, w, h float64, text string, fontSize int, color string, bold bool, textAlign string, seed int) map[string]interface{} {
 	el := base(id, x, y, w, h, seed)
 	el["type"] = "text"
 	el["text"] = text
@@ -35,7 +36,7 @@ func MakeText(id string, x, y, w, h float64, text string, fontSize int, color st
 	el["originalText"] = text
 	el["fontSize"] = fontSize
 	el["fontFamily"] = 4
-	el["textAlign"] = "left"
+	el["textAlign"] = textAlign
 	el["verticalAlign"] = "top"
 	el["strokeColor"] = color
 	el["backgroundColor"] = "transparent"
