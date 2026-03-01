@@ -257,6 +257,16 @@ make clean   # remove .bin/ and output/
 go test ./...
 ```
 
+## Illustration
+
+![Gopher and Crawfish by a river](docs/images/Gemini_Generated_Image_nbtdd4nbtdd4nbtd.png)
+
+[![CC BY 3.0](https://img.shields.io/badge/license-CC%20BY%203.0-lightgrey.svg)](https://creativecommons.org/licenses/by/3.0/)
+
+> The Go Gopher was designed by [Renée French](https://reneefrench.blogspot.com/).  
+> Licensed under [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/).  
+> This illustration is a derivative work inspired by the original Go Gopher design.
+
 ## License
 
 [MIT](LICENSE)
