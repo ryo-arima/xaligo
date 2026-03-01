@@ -1,0 +1,1876 @@
+id,service
+1,Amazon AppStream 2
+2,Amazon WorkSpaces Family
+3,Amazon AppStream 2
+4,Amazon WorkSpaces Family
+5,Amazon AppStream 2
+6,Amazon WorkSpaces Family
+7,Amazon AppStream 2
+8,Amazon WorkSpaces Family
+9,AWS App Runner
+10,AWS Batch
+11,AWS Compute Optimizer
+12,AWS Elastic Beanstalk
+13,AWS Lambda
+14,AWS Local Zones
+15,AWS Nitro Enclaves
+16,AWS Outposts family
+17,AWS Outposts rack
+18,AWS Outposts servers
+19,AWS Parallel Cluster
+20,AWS Parallel Computing Service
+21,AWS Serverless Application Repository
+22,AWS SimSpace Weaver
+23,AWS Wavelength
+24,Amazon DCV
+25,Amazon EC2 Auto Scaling
+26,Amazon EC2 Image Builder
+27,Amazon EC2
+28,Amazon Elastic VMware Service
+29,Amazon Lightsail for Research
+30,Amazon Lightsail
+31,Bottlerocket
+32,Elastic Fabric Adapter
+33,NICE EnginFrame
+34,AWS App Runner
+35,AWS Batch
+36,AWS Compute Optimizer
+37,AWS Elastic Beanstalk
+38,AWS Lambda
+39,AWS Local Zones
+40,AWS Nitro Enclaves
+41,AWS Outposts family
+42,AWS Outposts rack
+43,AWS Outposts servers
+44,AWS Parallel Cluster
+45,AWS Parallel Computing Service
+46,AWS Serverless Application Repository
+47,AWS SimSpace Weaver
+48,AWS Wavelength
+49,Amazon DCV
+50,Amazon EC2 Auto Scaling
+51,Amazon EC2 Image Builder
+52,Amazon EC2
+53,Amazon Elastic VMware Service
+54,Amazon Lightsail for Research
+55,Amazon Lightsail
+56,Bottlerocket
+57,Elastic Fabric Adapter
+58,NICE EnginFrame
+59,AWS App Runner
+60,AWS Batch
+61,AWS Compute Optimizer
+62,AWS Elastic Beanstalk
+63,AWS Lambda
+64,AWS Local Zones
+65,AWS Nitro Enclaves
+66,AWS Outposts family
+67,AWS Outposts rack
+68,AWS Outposts servers
+69,AWS Parallel Cluster
+70,AWS Parallel Computing Service
+71,AWS Serverless Application Repository
+72,AWS SimSpace Weaver
+73,AWS Wavelength
+74,Amazon DCV
+75,Amazon EC2 Auto Scaling
+76,Amazon EC2 Image Builder
+77,Amazon EC2
+78,Amazon Elastic VMware Service
+79,Amazon Lightsail for Research
+80,Amazon Lightsail
+81,Bottlerocket
+82,Elastic Fabric Adapter
+83,NICE EnginFrame
+84,AWS App Runner
+85,AWS Batch
+86,AWS Compute Optimizer
+87,AWS Elastic Beanstalk
+88,AWS Lambda
+89,AWS Local Zones
+90,AWS Nitro Enclaves
+91,AWS Outposts family
+92,AWS Outposts rack
+93,AWS Outposts servers
+94,AWS Parallel Cluster
+95,AWS Parallel Computing Service
+96,AWS Serverless Application Repository
+97,AWS SimSpace Weaver
+98,AWS Wavelength
+99,Amazon DCV
+100,Amazon EC2 Auto Scaling
+101,Amazon EC2 Image Builder
+102,Amazon EC2
+103,Amazon Elastic VMware Service
+104,Amazon Lightsail for Research
+105,Amazon Lightsail
+106,Bottlerocket
+107,Elastic Fabric Adapter
+108,NICE EnginFrame
+109,AWS Database Migration Service
+110,Amazon Aurora
+111,Amazon DocumentDB
+112,Amazon DynamoDB
+113,Amazon ElastiCache
+114,Amazon Keyspaces
+115,Amazon MemoryDB
+116,Amazon Neptune
+117,Amazon RDS
+118,Amazon Timestream
+119,Oracle Database at AWS
+120,AWS Database Migration Service
+121,Amazon Aurora
+122,Amazon DocumentDB
+123,Amazon DynamoDB
+124,Amazon ElastiCache
+125,Amazon Keyspaces
+126,Amazon MemoryDB
+127,Amazon Neptune
+128,Amazon RDS
+129,Amazon Timestream
+130,Oracle Database at AWS
+131,AWS Database Migration Service
+132,Amazon Aurora
+133,Amazon DocumentDB
+134,Amazon DynamoDB
+135,Amazon ElastiCache
+136,Amazon Keyspaces
+137,Amazon MemoryDB
+138,Amazon Neptune
+139,Amazon RDS
+140,Amazon Timestream
+141,Oracle Database at AWS
+142,AWS Database Migration Service
+143,Amazon Aurora
+144,Amazon DocumentDB
+145,Amazon DynamoDB
+146,Amazon ElastiCache
+147,Amazon Keyspaces
+148,Amazon MemoryDB
+149,Amazon Neptune
+150,Amazon RDS
+151,Amazon Timestream
+152,Oracle Database at AWS
+153,AWS Activate
+154,AWS IQ
+155,AWS Managed Services
+156,AWS Professional Services
+157,AWS Support
+158,AWS Training Certification
+159,AWS rePost Private
+160,AWS rePost
+161,AWS Activate
+162,AWS IQ
+163,AWS Managed Services
+164,AWS Professional Services
+165,AWS Support
+166,AWS Training Certification
+167,AWS rePost Private
+168,AWS rePost
+169,AWS Activate
+170,AWS IQ
+171,AWS Managed Services
+172,AWS Professional Services
+173,AWS Support
+174,AWS Training Certification
+175,AWS rePost Private
+176,AWS rePost
+177,AWS Activate
+178,AWS IQ
+179,AWS Managed Services
+180,AWS Professional Services
+181,AWS Support
+182,AWS Training Certification
+183,AWS rePost Private
+184,AWS rePost
+185,AWS Billing Conductor
+186,AWS Budgets
+187,AWS Cost Explorer
+188,AWS Cost and Usage Report
+189,Reserved Instance Reporting
+190,Savings Plans
+191,AWS Billing Conductor
+192,AWS Budgets
+193,AWS Cost Explorer
+194,AWS Cost and Usage Report
+195,Reserved Instance Reporting
+196,Savings Plans
+197,AWS Billing Conductor
+198,AWS Budgets
+199,AWS Cost Explorer
+200,AWS Cost and Usage Report
+201,Reserved Instance Reporting
+202,Savings Plans
+203,AWS Billing Conductor
+204,AWS Budgets
+205,AWS Cost Explorer
+206,AWS Cost and Usage Report
+207,Reserved Instance Reporting
+208,Savings Plans
+209,AWS Artifact
+210,AWS Audit Manager
+211,AWS Certificate Manager
+212,AWS CloudHSM
+213,AWS Directory Service
+214,AWS Firewall Manager
+215,AWS IAM Identity Center
+216,AWS Identity and Access Management
+217,AWS Key Management Service
+218,AWS Network Firewall
+219,AWS Payment Cryptography
+220,AWS Private Certificate Authority
+221,AWS Resource Access Manager
+222,AWS Secrets Manager
+223,AWS Security Hub
+224,AWS Security Incident Response
+225,AWS Shield
+226,AWS Signer
+227,AWS WAF
+228,Amazon Cloud Directory
+229,Amazon Cognito
+230,Amazon Detective
+231,Amazon GuardDuty
+232,Amazon Inspector
+233,Amazon Macie
+234,Amazon Security Lake
+235,Amazon Verified Permissions
+236,AWS Artifact
+237,AWS Audit Manager
+238,AWS Certificate Manager
+239,AWS CloudHSM
+240,AWS Directory Service
+241,AWS Firewall Manager
+242,AWS IAM Identity Center
+243,AWS Identity and Access Management
+244,AWS Key Management Service
+245,AWS Network Firewall
+246,AWS Payment Cryptography
+247,AWS Private Certificate Authority
+248,AWS Resource Access Manager
+249,AWS Secrets Manager
+250,AWS Security Hub
+251,AWS Security Incident Response
+252,AWS Shield
+253,AWS Signer
+254,AWS WAF
+255,Amazon Cloud Directory
+256,Amazon Cognito
+257,Amazon Detective
+258,Amazon GuardDuty
+259,Amazon Inspector
+260,Amazon Macie
+261,Amazon Security Lake
+262,Amazon Verified Permissions
+263,AWS Artifact
+264,AWS Audit Manager
+265,AWS Certificate Manager
+266,AWS CloudHSM
+267,AWS Directory Service
+268,AWS Firewall Manager
+269,AWS IAM Identity Center
+270,AWS Identity and Access Management
+271,AWS Key Management Service
+272,AWS Network Firewall
+273,AWS Payment Cryptography
+274,AWS Private Certificate Authority
+275,AWS Resource Access Manager
+276,AWS Secrets Manager
+277,AWS Security Hub
+278,AWS Security Incident Response
+279,AWS Shield
+280,AWS Signer
+281,AWS WAF
+282,Amazon Cloud Directory
+283,Amazon Cognito
+284,Amazon Detective
+285,Amazon GuardDuty
+286,Amazon Inspector
+287,Amazon Macie
+288,Amazon Security Lake
+289,Amazon Verified Permissions
+290,AWS Artifact
+291,AWS Audit Manager
+292,AWS Certificate Manager
+293,AWS CloudHSM
+294,AWS Directory Service
+295,AWS Firewall Manager
+296,AWS IAM Identity Center
+297,AWS Identity and Access Management
+298,AWS Key Management Service
+299,AWS Network Firewall
+300,AWS Payment Cryptography
+301,AWS Private Certificate Authority
+302,AWS Resource Access Manager
+303,AWS Secrets Manager
+304,AWS Security Hub
+305,AWS Security Incident Response
+306,AWS Shield
+307,AWS Signer
+308,AWS WAF
+309,Amazon Cloud Directory
+310,Amazon Cognito
+311,Amazon Detective
+312,Amazon GuardDuty
+313,Amazon Inspector
+314,Amazon Macie
+315,Amazon Security Lake
+316,Amazon Verified Permissions
+317,AWS AppFabric
+318,AWS End User Messaging
+319,AWS Supply Chain
+320,AWS Wickr
+321,Alexa For Business
+322,Amazon Chime SDK
+323,Amazon Chime
+324,Amazon Connect
+325,Amazon Pinpoint APIs
+326,Amazon Pinpoint
+327,Amazon Simple Email Service
+328,Amazon WorkDocs SDK
+329,Amazon WorkDocs
+330,Amazon WorkMail
+331,AWS AppFabric
+332,AWS End User Messaging
+333,AWS Supply Chain
+334,AWS Wickr
+335,Alexa For Business
+336,Amazon Chime SDK
+337,Amazon Chime
+338,Amazon Connect
+339,Amazon Pinpoint APIs
+340,Amazon Pinpoint
+341,Amazon Simple Email Service
+342,Amazon WorkDocs SDK
+343,Amazon WorkDocs
+344,Amazon WorkMail
+345,AWS AppFabric
+346,AWS End User Messaging
+347,AWS Supply Chain
+348,AWS Wickr
+349,Alexa For Business
+350,Amazon Chime SDK
+351,Amazon Chime
+352,Amazon Connect
+353,Amazon Pinpoint APIs
+354,Amazon Pinpoint
+355,Amazon Simple Email Service
+356,Amazon WorkDocs SDK
+357,Amazon WorkDocs
+358,Amazon WorkMail
+359,AWS AppFabric
+360,AWS End User Messaging
+361,AWS Supply Chain
+362,AWS Wickr
+363,Alexa For Business
+364,Amazon Chime SDK
+365,Amazon Chime
+366,Amazon Connect
+367,Amazon Pinpoint APIs
+368,Amazon Pinpoint
+369,Amazon Simple Email Service
+370,Amazon WorkDocs SDK
+371,Amazon WorkDocs
+372,Amazon WorkMail
+373,Amazon Managed Blockchain
+374,Amazon Quantum Ledger Database
+375,Amazon Managed Blockchain
+376,Amazon Quantum Ledger Database
+377,Amazon Managed Blockchain
+378,Amazon Quantum Ledger Database
+379,Amazon Managed Blockchain
+380,Amazon Quantum Ledger Database
+381,Amazon Braket
+382,Amazon Braket
+383,Amazon Braket
+384,Amazon Braket
+385,AWS IoT Analytics
+386,AWS IoT Button
+387,AWS IoT Core
+388,AWS IoT Device Defender
+389,AWS IoT Device Management
+390,AWS IoT Events
+391,AWS IoT ExpressLink
+392,AWS IoT FleetWise
+393,AWS IoT Greengrass
+394,AWS IoT SiteWise
+395,AWS IoT TwinMaker
+396,FreeRTOS
+397,AWS IoT Analytics
+398,AWS IoT Button
+399,AWS IoT Core
+400,AWS IoT Device Defender
+401,AWS IoT Device Management
+402,AWS IoT Events
+403,AWS IoT ExpressLink
+404,AWS IoT FleetWise
+405,AWS IoT Greengrass
+406,AWS IoT SiteWise
+407,AWS IoT TwinMaker
+408,FreeRTOS
+409,AWS IoT Analytics
+410,AWS IoT Button
+411,AWS IoT Core
+412,AWS IoT Device Defender
+413,AWS IoT Device Management
+414,AWS IoT Events
+415,AWS IoT ExpressLink
+416,AWS IoT FleetWise
+417,AWS IoT Greengrass
+418,AWS IoT SiteWise
+419,AWS IoT TwinMaker
+420,FreeRTOS
+421,AWS IoT Analytics
+422,AWS IoT Button
+423,AWS IoT Core
+424,AWS IoT Device Defender
+425,AWS IoT Device Management
+426,AWS IoT Events
+427,AWS IoT ExpressLink
+428,AWS IoT FleetWise
+429,AWS IoT Greengrass
+430,AWS IoT SiteWise
+431,AWS IoT TwinMaker
+432,FreeRTOS
+433,AWS Cloud Control API
+434,AWS Cloud Development Kit
+435,AWS Cloud9
+436,AWS CloudShell
+437,AWS CodeArtifact
+438,AWS CodeBuild
+439,AWS CodeCommit
+440,AWS CodeDeploy
+441,AWS CodePipeline
+442,AWS Command Line Interface
+443,AWS Fault Injection Service
+444,AWS Infrastructure Composer
+445,AWS Tools and SDKs
+446,AWS X Ray
+447,Amazon CodeCatalyst
+448,Amazon Corretto
+449,AWS Cloud Control API
+450,AWS Cloud Development Kit
+451,AWS Cloud9
+452,AWS CloudShell
+453,AWS CodeArtifact
+454,AWS CodeBuild
+455,AWS CodeCommit
+456,AWS CodeDeploy
+457,AWS CodePipeline
+458,AWS Command Line Interface
+459,AWS Fault Injection Service
+460,AWS Infrastructure Composer
+461,AWS Tools and SDKs
+462,AWS X Ray
+463,Amazon CodeCatalyst
+464,Amazon Corretto
+465,AWS Cloud Control API
+466,AWS Cloud Development Kit
+467,AWS Cloud9
+468,AWS CloudShell
+469,AWS CodeArtifact
+470,AWS CodeBuild
+471,AWS CodeCommit
+472,AWS CodeDeploy
+473,AWS CodePipeline
+474,AWS Command Line Interface
+475,AWS Fault Injection Service
+476,AWS Infrastructure Composer
+477,AWS Tools and SDKs
+478,AWS X Ray
+479,Amazon CodeCatalyst
+480,Amazon Corretto
+481,AWS Cloud Control API
+482,AWS Cloud Development Kit
+483,AWS Cloud9
+484,AWS CloudShell
+485,AWS CodeArtifact
+486,AWS CodeBuild
+487,AWS CodeCommit
+488,AWS CodeDeploy
+489,AWS CodePipeline
+490,AWS Command Line Interface
+491,AWS Fault Injection Service
+492,AWS Infrastructure Composer
+493,AWS Tools and SDKs
+494,AWS X Ray
+495,Amazon CodeCatalyst
+496,Amazon Corretto
+497,AWS Application Discovery Service
+498,AWS Application Migration Service
+499,AWS Data Transfer Terminal
+500,AWS DataSync
+501,AWS Mainframe Modernization
+502,AWS Migration Evaluator
+503,AWS Migration Hub
+504,AWS Transfer Family
+505,AWS Transform
+506,AWS Application Discovery Service
+507,AWS Application Migration Service
+508,AWS Data Transfer Terminal
+509,AWS DataSync
+510,AWS Mainframe Modernization
+511,AWS Migration Evaluator
+512,AWS Migration Hub
+513,AWS Transfer Family
+514,AWS Transform
+515,AWS Application Discovery Service
+516,AWS Application Migration Service
+517,AWS Data Transfer Terminal
+518,AWS DataSync
+519,AWS Mainframe Modernization
+520,AWS Migration Evaluator
+521,AWS Migration Hub
+522,AWS Transfer Family
+523,AWS Transform
+524,AWS Application Discovery Service
+525,AWS Application Migration Service
+526,AWS Data Transfer Terminal
+527,AWS DataSync
+528,AWS Mainframe Modernization
+529,AWS Migration Evaluator
+530,AWS Migration Hub
+531,AWS Transfer Family
+532,AWS Transform
+533,AWS Marketplace Dark
+534,AWS Marketplace Light
+535,AWS Marketplace Dark
+536,AWS Marketplace Light
+537,AWS Marketplace Dark
+538,AWS Marketplace Light
+539,AWS Marketplace Dark
+540,AWS Marketplace Light
+541,AWS Fargate
+542,Amazon ECS Anywhere
+543,Amazon EKS Anywhere
+544,Amazon EKS Cloud
+545,Amazon EKS Distro
+546,Amazon Elastic Container Registry
+547,Amazon Elastic Container Service
+548,Amazon Elastic Kubernetes Service
+549,Red Hat OpenShift Service on AWS
+550,AWS Fargate
+551,Amazon ECS Anywhere
+552,Amazon EKS Anywhere
+553,Amazon EKS Cloud
+554,Amazon EKS Distro
+555,Amazon Elastic Container Registry
+556,Amazon Elastic Container Service
+557,Amazon Elastic Kubernetes Service
+558,Red Hat OpenShift Service on AWS
+559,AWS Fargate
+560,Amazon ECS Anywhere
+561,Amazon EKS Anywhere
+562,Amazon EKS Cloud
+563,Amazon EKS Distro
+564,Amazon Elastic Container Registry
+565,Amazon Elastic Container Service
+566,Amazon Elastic Kubernetes Service
+567,Red Hat OpenShift Service on AWS
+568,AWS Fargate
+569,Amazon ECS Anywhere
+570,Amazon EKS Anywhere
+571,Amazon EKS Cloud
+572,Amazon EKS Distro
+573,Amazon Elastic Container Registry
+574,Amazon Elastic Container Service
+575,Amazon Elastic Kubernetes Service
+576,Red Hat OpenShift Service on AWS
+577,AWS AppConfig
+578,AWS Application Auto Scaling
+579,AWS Auto Scaling
+580,AWS Backint Agent
+581,AWS Chatbot
+582,AWS CloudFormation
+583,AWS CloudTrail
+584,AWS Compute Optimizer
+585,AWS Config
+586,AWS Console Mobile Application
+587,AWS Control Tower
+588,AWS Distro for OpenTelemetry
+589,AWS Health Dashboard
+590,AWS Launch Wizard
+591,AWS License Manager
+592,AWS Management Console
+593,AWS Organizations
+594,AWS Proton
+595,AWS Resilience Hub
+596,AWS Resource Explorer
+597,AWS Service Catalog
+598,AWS Service Management Connector
+599,AWS Systems Manager
+600,AWS Telco Network Builder
+601,AWS Trusted Advisor
+602,AWS User Notifications
+603,AWS Well Architected Tool
+604,Amazon CloudWatch
+605,Amazon Managed Grafana
+606,Amazon Managed Service for Prometheus
+607,AWS AppConfig
+608,AWS Application Auto Scaling
+609,AWS Auto Scaling
+610,AWS Backint Agent
+611,AWS Chatbot
+612,AWS CloudFormation
+613,AWS CloudTrail
+614,AWS Compute Optimizer
+615,AWS Config
+616,AWS Console Mobile Application
+617,AWS Control Tower
+618,AWS Distro for OpenTelemetry
+619,AWS Health Dashboard
+620,AWS Launch Wizard
+621,AWS License Manager
+622,AWS Management Console
+623,AWS Organizations
+624,AWS Proton
+625,AWS Resilience Hub
+626,AWS Resource Explorer
+627,AWS Service Catalog
+628,AWS Service Management Connector
+629,AWS Systems Manager
+630,AWS Telco Network Builder
+631,AWS Trusted Advisor
+632,AWS User Notifications
+633,AWS Well Architected Tool
+634,Amazon CloudWatch
+635,Amazon Managed Grafana
+636,Amazon Managed Service for Prometheus
+637,AWS AppConfig
+638,AWS Application Auto Scaling
+639,AWS Auto Scaling
+640,AWS Backint Agent
+641,AWS Chatbot
+642,AWS CloudFormation
+643,AWS CloudTrail
+644,AWS Compute Optimizer
+645,AWS Config
+646,AWS Console Mobile Application
+647,AWS Control Tower
+648,AWS Distro for OpenTelemetry
+649,AWS Health Dashboard
+650,AWS Launch Wizard
+651,AWS License Manager
+652,AWS Management Console
+653,AWS Organizations
+654,AWS Proton
+655,AWS Resilience Hub
+656,AWS Resource Explorer
+657,AWS Service Catalog
+658,AWS Service Management Connector
+659,AWS Systems Manager
+660,AWS Telco Network Builder
+661,AWS Trusted Advisor
+662,AWS User Notifications
+663,AWS Well Architected Tool
+664,Amazon CloudWatch
+665,Amazon Managed Grafana
+666,Amazon Managed Service for Prometheus
+667,AWS AppConfig
+668,AWS Application Auto Scaling
+669,AWS Auto Scaling
+670,AWS Backint Agent
+671,AWS Chatbot
+672,AWS CloudFormation
+673,AWS CloudTrail
+674,AWS Compute Optimizer
+675,AWS Config
+676,AWS Console Mobile Application
+677,AWS Control Tower
+678,AWS Distro for OpenTelemetry
+679,AWS Health Dashboard
+680,AWS Launch Wizard
+681,AWS License Manager
+682,AWS Management Console
+683,AWS Organizations
+684,AWS Proton
+685,AWS Resilience Hub
+686,AWS Resource Explorer
+687,AWS Service Catalog
+688,AWS Service Management Connector
+689,AWS Systems Manager
+690,AWS Telco Network Builder
+691,AWS Trusted Advisor
+692,AWS User Notifications
+693,AWS Well Architected Tool
+694,Amazon CloudWatch
+695,Amazon Managed Grafana
+696,Amazon Managed Service for Prometheus
+697,AWS AppSync
+698,AWS B2B Data Interchange
+699,AWS Express Workflows
+700,AWS Step Functions
+701,Amazon AppFlow
+702,Amazon EventBridge
+703,Amazon MQ
+704,Amazon Managed Workflows for Apache Airflow
+705,Amazon Simple Notification Service
+706,Amazon Simple Queue Service
+707,AWS AppSync
+708,AWS B2B Data Interchange
+709,AWS Express Workflows
+710,AWS Step Functions
+711,Amazon AppFlow
+712,Amazon EventBridge
+713,Amazon MQ
+714,Amazon Managed Workflows for Apache Airflow
+715,Amazon Simple Notification Service
+716,Amazon Simple Queue Service
+717,AWS AppSync
+718,AWS B2B Data Interchange
+719,AWS Express Workflows
+720,AWS Step Functions
+721,Amazon AppFlow
+722,Amazon EventBridge
+723,Amazon MQ
+724,Amazon Managed Workflows for Apache Airflow
+725,Amazon Simple Notification Service
+726,Amazon Simple Queue Service
+727,AWS AppSync
+728,AWS B2B Data Interchange
+729,AWS Express Workflows
+730,AWS Step Functions
+731,Amazon AppFlow
+732,Amazon EventBridge
+733,Amazon MQ
+734,Amazon Managed Workflows for Apache Airflow
+735,Amazon Simple Notification Service
+736,Amazon Simple Queue Service
+737,Amazon GameLift Servers
+738,Amazon GameLift Streams
+739,Open 3D Engine
+740,Amazon GameLift Servers
+741,Amazon GameLift Streams
+742,Open 3D Engine
+743,Amazon GameLift Servers
+744,Amazon GameLift Streams
+745,Open 3D Engine
+746,Amazon GameLift Servers
+747,Amazon GameLift Streams
+748,Open 3D Engine
+749,AWS Deadline Cloud
+750,AWS Elemental Appliances & Software
+751,AWS Elemental Conductor
+752,AWS Elemental Delta
+753,AWS Elemental Link
+754,AWS Elemental Live
+755,AWS Elemental MediaConnect
+756,AWS Elemental MediaConvert
+757,AWS Elemental MediaLive
+758,AWS Elemental MediaPackage
+759,AWS Elemental MediaStore
+760,AWS Elemental MediaTailor
+761,AWS Elemental Server
+762,AWS Thinkbox Deadline
+763,AWS Thinkbox Frost
+764,AWS Thinkbox Krakatoa
+765,AWS Thinkbox Sequoia
+766,AWS Thinkbox Stoke
+767,AWS Thinkbox XMesh
+768,Amazon Elastic Transcoder
+769,Amazon Interactive Video Service
+770,Amazon Kinesis Video Streams
+771,AWS Deadline Cloud
+772,AWS Elemental Appliances & Software
+773,AWS Elemental Conductor
+774,AWS Elemental Delta
+775,AWS Elemental Link
+776,AWS Elemental Live
+777,AWS Elemental MediaConnect
+778,AWS Elemental MediaConvert
+779,AWS Elemental MediaLive
+780,AWS Elemental MediaPackage
+781,AWS Elemental MediaStore
+782,AWS Elemental MediaTailor
+783,AWS Elemental Server
+784,AWS Thinkbox Deadline
+785,AWS Thinkbox Frost
+786,AWS Thinkbox Krakatoa
+787,AWS Thinkbox Sequoia
+788,AWS Thinkbox Stoke
+789,AWS Thinkbox XMesh
+790,Amazon Elastic Transcoder
+791,Amazon Interactive Video Service
+792,Amazon Kinesis Video Streams
+793,AWS Deadline Cloud
+794,AWS Elemental Appliances & Software
+795,AWS Elemental Conductor
+796,AWS Elemental Delta
+797,AWS Elemental Link
+798,AWS Elemental Live
+799,AWS Elemental MediaConnect
+800,AWS Elemental MediaConvert
+801,AWS Elemental MediaLive
+802,AWS Elemental MediaPackage
+803,AWS Elemental MediaStore
+804,AWS Elemental MediaTailor
+805,AWS Elemental Server
+806,AWS Thinkbox Deadline
+807,AWS Thinkbox Frost
+808,AWS Thinkbox Krakatoa
+809,AWS Thinkbox Sequoia
+810,AWS Thinkbox Stoke
+811,AWS Thinkbox XMesh
+812,Amazon Elastic Transcoder
+813,Amazon Interactive Video Service
+814,Amazon Kinesis Video Streams
+815,AWS Deadline Cloud
+816,AWS Elemental Appliances & Software
+817,AWS Elemental Conductor
+818,AWS Elemental Delta
+819,AWS Elemental Link
+820,AWS Elemental Live
+821,AWS Elemental MediaConnect
+822,AWS Elemental MediaConvert
+823,AWS Elemental MediaLive
+824,AWS Elemental MediaPackage
+825,AWS Elemental MediaStore
+826,AWS Elemental MediaTailor
+827,AWS Elemental Server
+828,AWS Thinkbox Deadline
+829,AWS Thinkbox Frost
+830,AWS Thinkbox Krakatoa
+831,AWS Thinkbox Sequoia
+832,AWS Thinkbox Stoke
+833,AWS Thinkbox XMesh
+834,Amazon Elastic Transcoder
+835,Amazon Interactive Video Service
+836,Amazon Kinesis Video Streams
+837,AWS App Studio
+838,AWS Deep Learning AMIs
+839,AWS Deep Learning Containers
+840,AWS DeepComposer
+841,AWS DeepRacer
+842,AWS HealthImaging
+843,AWS HealthLake
+844,AWS HealthOmics
+845,AWS HealthScribe
+846,AWS Neuron
+847,AWS Panorama
+848,Amazon Augmented AI A2I
+849,Amazon Bedrock
+850,Amazon CodeGuru
+851,Amazon CodeWhisperer
+852,Amazon Comprehend Medical
+853,Amazon Comprehend
+854,Amazon DevOps Guru
+855,Amazon Elastic Inference
+856,Amazon Forecast
+857,Amazon Fraud Detector
+858,Amazon Kendra
+859,Amazon Lex
+860,Amazon Lookout for Equipment
+861,Amazon Lookout for Metrics
+862,Amazon Lookout for Vision
+863,Amazon Monitron
+864,Amazon Nova
+865,Amazon Personalize
+866,Amazon Polly
+867,Amazon Q
+868,Amazon Rekognition
+869,Amazon SageMaker AI
+870,Amazon SageMaker Ground Truth
+871,Amazon SageMaker Studio Lab
+872,Amazon Textract
+873,Amazon Transcribe
+874,Amazon Translate
+875,Apache MXNet on AWS
+876,PyTorch on AWS
+877,TensorFlow on AWS
+878,AWS App Studio
+879,AWS Deep Learning AMIs
+880,AWS Deep Learning Containers
+881,AWS DeepComposer
+882,AWS DeepRacer
+883,AWS HealthImaging
+884,AWS HealthLake
+885,AWS HealthOmics
+886,AWS HealthScribe
+887,AWS Neuron
+888,AWS Panorama
+889,Amazon Augmented AI A2I
+890,Amazon Bedrock
+891,Amazon CodeGuru
+892,Amazon CodeWhisperer
+893,Amazon Comprehend Medical
+894,Amazon Comprehend
+895,Amazon DevOps Guru
+896,Amazon Elastic Inference
+897,Amazon Forecast
+898,Amazon Fraud Detector
+899,Amazon Kendra
+900,Amazon Lex
+901,Amazon Lookout for Equipment
+902,Amazon Lookout for Metrics
+903,Amazon Lookout for Vision
+904,Amazon Monitron
+905,Amazon Nova
+906,Amazon Personalize
+907,Amazon Polly
+908,Amazon Q
+909,Amazon Rekognition
+910,Amazon SageMaker AI
+911,Amazon SageMaker Ground Truth
+912,Amazon SageMaker Studio Lab
+913,Amazon Textract
+914,Amazon Transcribe
+915,Amazon Translate
+916,Apache MXNet on AWS
+917,PyTorch on AWS
+918,TensorFlow on AWS
+919,AWS App Studio
+920,AWS Deep Learning AMIs
+921,AWS Deep Learning Containers
+922,AWS DeepComposer
+923,AWS DeepRacer
+924,AWS HealthImaging
+925,AWS HealthLake
+926,AWS HealthOmics
+927,AWS HealthScribe
+928,AWS Neuron
+929,AWS Panorama
+930,Amazon Augmented AI A2I
+931,Amazon Bedrock
+932,Amazon CodeGuru
+933,Amazon CodeWhisperer
+934,Amazon Comprehend Medical
+935,Amazon Comprehend
+936,Amazon DevOps Guru
+937,Amazon Elastic Inference
+938,Amazon Forecast
+939,Amazon Fraud Detector
+940,Amazon Kendra
+941,Amazon Lex
+942,Amazon Lookout for Equipment
+943,Amazon Lookout for Metrics
+944,Amazon Lookout for Vision
+945,Amazon Monitron
+946,Amazon Nova
+947,Amazon Personalize
+948,Amazon Polly
+949,Amazon Q
+950,Amazon Rekognition
+951,Amazon SageMaker AI
+952,Amazon SageMaker Ground Truth
+953,Amazon SageMaker Studio Lab
+954,Amazon Textract
+955,Amazon Transcribe
+956,Amazon Translate
+957,Apache MXNet on AWS
+958,PyTorch on AWS
+959,TensorFlow on AWS
+960,AWS App Studio
+961,AWS Deep Learning AMIs
+962,AWS Deep Learning Containers
+963,AWS DeepComposer
+964,AWS DeepRacer
+965,AWS HealthImaging
+966,AWS HealthLake
+967,AWS HealthOmics
+968,AWS HealthScribe
+969,AWS Neuron
+970,AWS Panorama
+971,Amazon Augmented AI A2I
+972,Amazon Bedrock
+973,Amazon CodeGuru
+974,Amazon CodeWhisperer
+975,Amazon Comprehend Medical
+976,Amazon Comprehend
+977,Amazon DevOps Guru
+978,Amazon Elastic Inference
+979,Amazon Forecast
+980,Amazon Fraud Detector
+981,Amazon Kendra
+982,Amazon Lex
+983,Amazon Lookout for Equipment
+984,Amazon Lookout for Metrics
+985,Amazon Lookout for Vision
+986,Amazon Monitron
+987,Amazon Nova
+988,Amazon Personalize
+989,Amazon Polly
+990,Amazon Q
+991,Amazon Rekognition
+992,Amazon SageMaker AI
+993,Amazon SageMaker Ground Truth
+994,Amazon SageMaker Studio Lab
+995,Amazon Textract
+996,Amazon Transcribe
+997,Amazon Translate
+998,Apache MXNet on AWS
+999,PyTorch on AWS
+1000,TensorFlow on AWS
+1001,AWS Ground Station
+1002,AWS Ground Station
+1003,AWS Ground Station
+1004,AWS Ground Station
+1005,AWS Backup
+1006,AWS Elastic Disaster Recovery
+1007,AWS Snowball Edge
+1008,AWS Snowball
+1009,AWS Storage Gateway
+1010,Amazon EFS
+1011,Amazon Elastic Block Store
+1012,Amazon FSx for Lustre
+1013,Amazon FSx for NetApp ONTAP
+1014,Amazon FSx for OpenZFS
+1015,Amazon FSx for WFS
+1016,Amazon FSx
+1017,Amazon File Cache
+1018,Amazon S3 on Outposts
+1019,Amazon Simple Storage Service Glacier
+1020,Amazon Simple Storage Service
+1021,AWS Backup
+1022,AWS Elastic Disaster Recovery
+1023,AWS Snowball Edge
+1024,AWS Snowball
+1025,AWS Storage Gateway
+1026,Amazon EFS
+1027,Amazon Elastic Block Store
+1028,Amazon FSx for Lustre
+1029,Amazon FSx for NetApp ONTAP
+1030,Amazon FSx for OpenZFS
+1031,Amazon FSx for WFS
+1032,Amazon FSx
+1033,Amazon File Cache
+1034,Amazon S3 on Outposts
+1035,Amazon Simple Storage Service Glacier
+1036,Amazon Simple Storage Service
+1037,AWS Backup
+1038,AWS Elastic Disaster Recovery
+1039,AWS Snowball Edge
+1040,AWS Snowball
+1041,AWS Storage Gateway
+1042,Amazon EFS
+1043,Amazon Elastic Block Store
+1044,Amazon FSx for Lustre
+1045,Amazon FSx for NetApp ONTAP
+1046,Amazon FSx for OpenZFS
+1047,Amazon FSx for WFS
+1048,Amazon FSx
+1049,Amazon File Cache
+1050,Amazon S3 on Outposts
+1051,Amazon Simple Storage Service Glacier
+1052,Amazon Simple Storage Service
+1053,AWS Backup
+1054,AWS Elastic Disaster Recovery
+1055,AWS Snowball Edge
+1056,AWS Snowball
+1057,AWS Storage Gateway
+1058,Amazon EFS
+1059,Amazon Elastic Block Store
+1060,Amazon FSx for Lustre
+1061,Amazon FSx for NetApp ONTAP
+1062,Amazon FSx for OpenZFS
+1063,Amazon FSx for WFS
+1064,Amazon FSx
+1065,Amazon File Cache
+1066,Amazon S3 on Outposts
+1067,Amazon Simple Storage Service Glacier
+1068,Amazon Simple Storage Service
+1069,AWS Amplify
+1070,AWS Device Farm
+1071,Amazon Location Service
+1072,AWS Amplify
+1073,AWS Device Farm
+1074,Amazon Location Service
+1075,AWS Amplify
+1076,AWS Device Farm
+1077,Amazon Location Service
+1078,AWS Amplify
+1079,AWS Device Farm
+1080,Amazon Location Service
+1081,AWS Clean Rooms
+1082,AWS Data Exchange
+1083,AWS Entity Resolution
+1084,AWS Glue DataBrew
+1085,AWS Glue
+1086,AWS Lake Formation
+1087,Amazon Athena
+1088,Amazon CloudSearch
+1089,Amazon Data Firehose
+1090,Amazon DataZone
+1091,Amazon EMR
+1092,Amazon FinSpace
+1093,Amazon Kinesis Data Streams
+1094,Amazon Kinesis Video Streams
+1095,Amazon Kinesis
+1096,Amazon Managed Service for Apache Flink
+1097,Amazon Managed Streaming for Apache Kafka
+1098,Amazon OpenSearch Service
+1099,Amazon QuickSight
+1100,Amazon Redshift
+1101,Amazon SageMaker
+1102,AWS Clean Rooms
+1103,AWS Data Exchange
+1104,AWS Entity Resolution
+1105,AWS Glue DataBrew
+1106,AWS Glue
+1107,AWS Lake Formation
+1108,Amazon Athena
+1109,Amazon CloudSearch
+1110,Amazon Data Firehose
+1111,Amazon DataZone
+1112,Amazon EMR
+1113,Amazon FinSpace
+1114,Amazon Kinesis Data Streams
+1115,Amazon Kinesis Video Streams
+1116,Amazon Kinesis
+1117,Amazon Managed Service for Apache Flink
+1118,Amazon Managed Streaming for Apache Kafka
+1119,Amazon OpenSearch Service
+1120,Amazon QuickSight
+1121,Amazon Redshift
+1122,Amazon SageMaker
+1123,AWS Clean Rooms
+1124,AWS Data Exchange
+1125,AWS Entity Resolution
+1126,AWS Glue DataBrew
+1127,AWS Glue
+1128,AWS Lake Formation
+1129,Amazon Athena
+1130,Amazon CloudSearch
+1131,Amazon Data Firehose
+1132,Amazon DataZone
+1133,Amazon EMR
+1134,Amazon FinSpace
+1135,Amazon Kinesis Data Streams
+1136,Amazon Kinesis Video Streams
+1137,Amazon Kinesis
+1138,Amazon Managed Service for Apache Flink
+1139,Amazon Managed Streaming for Apache Kafka
+1140,Amazon OpenSearch Service
+1141,Amazon QuickSight
+1142,Amazon Redshift
+1143,Amazon SageMaker
+1144,AWS Clean Rooms
+1145,AWS Data Exchange
+1146,AWS Entity Resolution
+1147,AWS Glue DataBrew
+1148,AWS Glue
+1149,AWS Lake Formation
+1150,Amazon Athena
+1151,Amazon CloudSearch
+1152,Amazon Data Firehose
+1153,Amazon DataZone
+1154,Amazon EMR
+1155,Amazon FinSpace
+1156,Amazon Kinesis Data Streams
+1157,Amazon Kinesis Video Streams
+1158,Amazon Kinesis
+1159,Amazon Managed Service for Apache Flink
+1160,Amazon Managed Streaming for Apache Kafka
+1161,Amazon OpenSearch Service
+1162,Amazon QuickSight
+1163,Amazon Redshift
+1164,Amazon SageMaker
+1165,AWS App Mesh
+1166,AWS Client VPN
+1167,AWS Cloud Map
+1168,AWS Cloud WAN
+1169,AWS Direct Connect
+1170,AWS Global Accelerator
+1171,AWS Private 5G
+1172,AWS PrivateLink
+1173,AWS Site to Site VPN
+1174,AWS Transit Gateway
+1175,AWS Verified Access
+1176,Amazon API Gateway
+1177,Amazon Application Recovery Controller
+1178,Amazon CloudFront
+1179,Amazon Route 53
+1180,Amazon VPC Lattice
+1181,Amazon Virtual Private Cloud
+1182,Elastic Load Balancing
+1183,AWS App Mesh
+1184,AWS Client VPN
+1185,AWS Cloud Map
+1186,AWS Cloud WAN
+1187,AWS Direct Connect
+1188,AWS Global Accelerator
+1189,AWS Private 5G
+1190,AWS PrivateLink
+1191,AWS Site to Site VPN
+1192,AWS Transit Gateway
+1193,AWS Verified Access
+1194,Amazon API Gateway
+1195,Amazon Application Recovery Controller
+1196,Amazon CloudFront
+1197,Amazon Route 53
+1198,Amazon VPC Lattice
+1199,Amazon Virtual Private Cloud
+1200,Elastic Load Balancing
+1201,AWS App Mesh
+1202,AWS Client VPN
+1203,AWS Cloud Map
+1204,AWS Cloud WAN
+1205,AWS Direct Connect
+1206,AWS Global Accelerator
+1207,AWS Private 5G
+1208,AWS PrivateLink
+1209,AWS Site to Site VPN
+1210,AWS Transit Gateway
+1211,AWS Verified Access
+1212,Amazon API Gateway
+1213,Amazon Application Recovery Controller
+1214,Amazon CloudFront
+1215,Amazon Route 53
+1216,Amazon VPC Lattice
+1217,Amazon Virtual Private Cloud
+1218,Elastic Load Balancing
+1219,AWS App Mesh
+1220,AWS Client VPN
+1221,AWS Cloud Map
+1222,AWS Cloud WAN
+1223,AWS Direct Connect
+1224,AWS Global Accelerator
+1225,AWS Private 5G
+1226,AWS PrivateLink
+1227,AWS Site to Site VPN
+1228,AWS Transit Gateway
+1229,AWS Verified Access
+1230,Amazon API Gateway
+1231,Amazon Application Recovery Controller
+1232,Amazon CloudFront
+1233,Amazon Route 53
+1234,Amazon VPC Lattice
+1235,Amazon Virtual Private Cloud
+1236,Elastic Load Balancing
+1237,Arch Category Analytics
+1238,Arch Category Application Integration
+1239,Arch Category Artificial Intelligence
+1240,Arch Category Blockchain
+1241,Arch Category Business Applications
+1242,Arch Category Cloud Financial Management
+1243,Arch Category Compute
+1244,Arch Category Contact Center
+1245,Arch Category Containers
+1246,Arch Category Customer Enablement
+1247,Arch Category Database
+1248,Arch Category Developer Tools
+1249,Arch Category End User Computing
+1250,Arch Category Front End Web Mobile
+1251,Arch Category Games
+1252,Arch Category Internet of Things
+1253,Arch Category Management Governance
+1254,Arch Category Media Services
+1255,Arch Category Migration Modernization
+1256,Arch Category Networking Content Delivery
+1257,Arch Category Quantum Technologies
+1258,Arch Category Satellite
+1259,Arch Category Security Identity Compliance
+1260,Arch Category Serverless
+1261,Arch Category Storage
+1262,Arch Category Analytics
+1263,Arch Category Application Integration
+1264,Arch Category Artificial Intelligence
+1265,Arch Category Blockchain
+1266,Arch Category Business Applications
+1267,Arch Category Cloud Financial Management
+1268,Arch Category Compute
+1269,Arch Category Contact Center
+1270,Arch Category Containers
+1271,Arch Category Customer Enablement
+1272,Arch Category Database
+1273,Arch Category Developer Tools
+1274,Arch Category End User Computing
+1275,Arch Category Front End Web Mobile
+1276,Arch Category Games
+1277,Arch Category Internet of Things
+1278,Arch Category Management Governance
+1279,Arch Category Media Services
+1280,Arch Category Migration Modernization
+1281,Arch Category Networking Content Delivery
+1282,Arch Category Quantum Technologies
+1283,Arch Category Satellite
+1284,Arch Category Security Identity Compliance
+1285,Arch Category Serverless
+1286,Arch Category Storage
+1287,Arch Category Analytics
+1288,Arch Category Application Integration
+1289,Arch Category Artificial Intelligence
+1290,Arch Category Blockchain
+1291,Arch Category Business Applications
+1292,Arch Category Cloud Financial Management
+1293,Arch Category Compute
+1294,Arch Category Contact Center
+1295,Arch Category Containers
+1296,Arch Category Customer Enablement
+1297,Arch Category Database
+1298,Arch Category Developer Tools
+1299,Arch Category End User Computing
+1300,Arch Category Front End Web Mobile
+1301,Arch Category Games
+1302,Arch Category Internet of Things
+1303,Arch Category Management Governance
+1304,Arch Category Media Services
+1305,Arch Category Migration Modernization
+1306,Arch Category Networking Content Delivery
+1307,Arch Category Quantum Technologies
+1308,Arch Category Satellite
+1309,Arch Category Security Identity Compliance
+1310,Arch Category Serverless
+1311,Arch Category Storage
+1312,Arch Category Analytics
+1313,Arch Category Application Integration
+1314,Arch Category Artificial Intelligence
+1315,Arch Category Blockchain
+1316,Arch Category Business Applications
+1317,Arch Category Cloud Financial Management
+1318,Arch Category Compute
+1319,Arch Category Contact Center
+1320,Arch Category Containers
+1321,Arch Category Customer Enablement
+1322,Arch Category Database
+1323,Arch Category Developer Tools
+1324,Arch Category End User Computing
+1325,Arch Category Front End Web Mobile
+1326,Arch Category Games
+1327,Arch Category Internet of Things
+1328,Arch Category Management Governance
+1329,Arch Category Media Services
+1330,Arch Category Migration Modernization
+1331,Arch Category Networking Content Delivery
+1332,Arch Category Quantum Technologies
+1333,Arch Category Satellite
+1334,Arch Category Security Identity Compliance
+1335,Arch Category Serverless
+1336,Arch Category Storage
+1337,AWS IoT Analytics Channel
+1338,AWS IoT Analytics Data Store
+1339,AWS IoT Analytics Dataset
+1340,AWS IoT Analytics Notebook
+1341,AWS IoT Analytics Pipeline
+1342,AWS IoT Core Device Advisor
+1343,AWS IoT Core Device Location
+1344,AWS IoT Device Defender IoT Device Jobs
+1345,AWS IoT Device Management Fleet Hub
+1346,AWS IoT Device Tester
+1347,AWS IoT Greengrass Artifact
+1348,AWS IoT Greengrass Component Machine Learning
+1349,AWS IoT Greengrass Component Nucleus
+1350,AWS IoT Greengrass Component Private
+1351,AWS IoT Greengrass Component Public
+1352,AWS IoT Greengrass Component
+1353,AWS IoT Greengrass Connector
+1354,AWS IoT Greengrass Interprocess Communication
+1355,AWS IoT Greengrass Protocol
+1356,AWS IoT Greengrass Recipe
+1357,AWS IoT Greengrass Stream Manager
+1358,AWS IoT Hardware Board
+1359,AWS IoT Rule
+1360,AWS IoT SiteWise Asset Hierarchy
+1361,AWS IoT SiteWise Asset Model
+1362,AWS IoT SiteWise Asset Properties
+1363,AWS IoT SiteWise Asset
+1364,AWS IoT SiteWise Data Streams
+1365,AWS IoT Action
+1366,AWS IoT Actuator
+1367,AWS IoT Alexa Enabled Device
+1368,AWS IoT Alexa Skill
+1369,AWS IoT Alexa Voice Service
+1370,AWS IoT Certificate
+1371,AWS IoT Desired State
+1372,AWS IoT Device Gateway
+1373,AWS IoT Echo
+1374,AWS IoT Fire TV Stick
+1375,AWS IoT Fire TV
+1376,AWS IoT HTTP2 Protocol
+1377,AWS IoT HTTP Protocol
+1378,AWS IoT Lambda Function
+1379,AWS IoT LoRaWAN Protocol
+1380,AWS IoT MQTT Protocol
+1381,AWS IoT Over Air Update
+1382,AWS IoT Policy
+1383,AWS IoT Reported State
+1384,AWS IoT Sailboat
+1385,AWS IoT Sensor
+1386,AWS IoT Servo
+1387,AWS IoT Shadow
+1388,AWS IoT Simulator
+1389,AWS IoT Thing Bank
+1390,AWS IoT Thing Bicycle
+1391,AWS IoT Thing Camera
+1392,AWS IoT Thing Car
+1393,AWS IoT Thing Cart
+1394,AWS IoT Thing Coffee Pot
+1395,AWS IoT Thing Door Lock
+1396,AWS IoT Thing Factory
+1397,AWS IoT Thing FreeRTOS Device
+1398,AWS IoT Thing Generic
+1399,AWS IoT Thing House
+1400,AWS IoT Thing Humidity Sensor
+1401,AWS IoT Thing Industrial PC
+1402,AWS IoT Thing Lightbulb
+1403,AWS IoT Thing Medical Emergency
+1404,AWS IoT Thing PLC
+1405,AWS IoT Thing Police Emergency
+1406,AWS IoT Thing Relay
+1407,AWS IoT Thing Stacklight
+1408,AWS IoT Thing Temperature Humidity Sensor
+1409,AWS IoT Thing Temperature Sensor
+1410,AWS IoT Thing Temperature Vibration Sensor
+1411,AWS IoT Thing Thermostat
+1412,AWS IoT Thing Travel
+1413,AWS IoT Thing Utility
+1414,AWS IoT Thing Vibration Sensor
+1415,AWS IoT Thing Windfarm
+1416,AWS IoT Topic
+1417,Amazon Braket Chandelier
+1418,Amazon Braket Chip
+1419,Amazon Braket Embedded Simulator
+1420,Amazon Braket Managed Simulator
+1421,Amazon Braket Noise Simulator
+1422,Amazon Braket QPU
+1423,Amazon Braket Simulator 1
+1424,Amazon Braket Simulator 2
+1425,Amazon Braket Simulator 3
+1426,Amazon Braket Simulator 4
+1427,Amazon Braket Simulator
+1428,Amazon Braket State Vector
+1429,Amazon Braket Tensor Network
+1430,AWS Data Exchange for APIs
+1431,AWS Glue AWS Glue for Ray
+1432,AWS Glue Crawler
+1433,AWS Glue Data Catalog
+1434,AWS Glue Data Quality
+1435,AWS Lake Formation Data Lake
+1436,Amazon Athena Data Source Connectors
+1437,Amazon CloudSearch Search Documents
+1438,Amazon DataZone Business Data Catalog
+1439,Amazon DataZone Data Portal
+1440,Amazon DataZone Data Projects
+1441,Amazon EMR Cluster
+1442,Amazon EMR EMR Engine
+1443,Amazon EMR HDFS Cluster
+1444,Amazon MSK Amazon MSK Connect
+1445,Amazon OpenSearch Service Cluster Administrator Node
+1446,Amazon OpenSearch Service Data Node
+1447,Amazon OpenSearch Service Index
+1448,Amazon OpenSearch Service Observability
+1449,Amazon OpenSearch Service OpenSearch Dashboards
+1450,Amazon OpenSearch Service OpenSearch Ingestion
+1451,Amazon OpenSearch Service Traces
+1452,Amazon OpenSearch Service UltraWarm Node
+1453,Amazon Quicksight Paginated Reports
+1454,Amazon Redshift Auto copy
+1455,Amazon Redshift Data Sharing Governance
+1456,Amazon Redshift Dense Compute Node
+1457,Amazon Redshift Dense Storage Node
+1458,Amazon Redshift ML
+1459,Amazon Redshift Query Editor v2.0
+1460,Amazon Redshift RA3
+1461,Amazon Redshift Streaming Ingestion
+1462,Amazon WorkSpaces Family Amazon WorkSpaces Core
+1463,Amazon WorkSpaces Family Amazon WorkSpaces Secure Browser
+1464,Amazon WorkSpaces Family Amazon WorkSpaces
+1465,AWS Certificate Manager Certificate Authority
+1466,AWS Directory Service AD Connector
+1467,AWS Directory Service AWS Managed Microsoft AD
+1468,AWS Directory Service Simple AD
+1469,AWS Identity Access Management AWS STS Alternate
+1470,AWS Identity Access Management AWS STS
+1471,AWS Identity Access Management Add on
+1472,AWS Identity Access Management Data Encryption Key
+1473,AWS Identity Access Management Encrypted Data
+1474,AWS Identity Access Management IAM Access Analyzer
+1475,AWS Identity Access Management IAM Roles Anywhere
+1476,AWS Identity Access Management Long Term Security Credential
+1477,AWS Identity Access Management MFA Token
+1478,AWS Identity Access Management Permissions
+1479,AWS Identity Access Management Role
+1480,AWS Identity Access Management Temporary Security Credential
+1481,AWS Key Management Service External Key Store
+1482,AWS Network Firewall Endpoints
+1483,AWS Security Hub Finding
+1484,AWS Shield AWS Shield Advanced
+1485,AWS WAF Bad Bot
+1486,AWS WAF Bot Control
+1487,AWS WAF Bot
+1488,AWS WAF Filtering Rule
+1489,AWS WAF Labels
+1490,AWS WAF Managed Rule
+1491,AWS WAF Rule
+1492,Amazon Inspector Agent
+1493,Amazon Managed Blockchain Blockchain
+1494,Amazon EventBridge Event
+1495,Amazon EventBridge Custom Event Bus
+1496,Amazon EventBridge Default Event Bus
+1497,Amazon EventBridge Pipes
+1498,Amazon EventBridge Rule
+1499,Amazon EventBridge Saas Partner Event
+1500,Amazon EventBridge Scheduler
+1501,Amazon EventBridge Schema Registry
+1502,Amazon EventBridge Schema
+1503,Amazon MQ Broker
+1504,Amazon Simple Notification Service Email Notification
+1505,Amazon Simple Notification Service HTTP Notification
+1506,Amazon Simple Notification Service Topic
+1507,Amazon Simple Queue Service Message
+1508,Amazon Simple Queue Service Queue
+1509,AWS CloudFormation Change Set
+1510,AWS CloudFormation Stack
+1511,AWS CloudFormation Template
+1512,AWS CloudTrail CloudTrail Lake
+1513,AWS License Manager Application Discovery
+1514,AWS License Manager License Blending
+1515,AWS Organizations Account
+1516,AWS Organizations Management Account
+1517,AWS Organizations Organizational Unit
+1518,AWS Systems Manager Application Manager
+1519,AWS Systems Manager Automation
+1520,AWS Systems Manager Change Calendar
+1521,AWS Systems Manager Change Manager
+1522,AWS Systems Manager Compliance
+1523,AWS Systems Manager Distributor
+1524,AWS Systems Manager Documents
+1525,AWS Systems Manager Incident Manager
+1526,AWS Systems Manager Inventory
+1527,AWS Systems Manager Maintenance Windows
+1528,AWS Systems Manager OpsCenter
+1529,AWS Systems Manager Parameter Store
+1530,AWS Systems Manager Patch Manager
+1531,AWS Systems Manager Run Command
+1532,AWS Systems Manager Session Manager
+1533,AWS Systems Manager State Manager
+1534,AWS Trusted Advisor Checklist Cost
+1535,AWS Trusted Advisor Checklist Fault Tolerant
+1536,AWS Trusted Advisor Checklist Performance
+1537,AWS Trusted Advisor Checklist Security
+1538,AWS Trusted Advisor Checklist
+1539,Amazon CloudWatch Alarm
+1540,Amazon CloudWatch Cross account Observability
+1541,Amazon CloudWatch Data Protection
+1542,Amazon CloudWatch Event Event Based
+1543,Amazon CloudWatch Event Time Based
+1544,Amazon CloudWatch Evidently
+1545,Amazon CloudWatch Logs
+1546,Amazon CloudWatch Metrics Insights
+1547,Amazon CloudWatch RUM
+1548,Amazon CloudWatch Rule
+1549,Amazon CloudWatch Synthetics
+1550,AWS App Mesh Mesh
+1551,AWS App Mesh Virtual Gateway
+1552,AWS App Mesh Virtual Node
+1553,AWS App Mesh Virtual Router
+1554,AWS App Mesh Virtual Service
+1555,AWS Cloud Map Namespace
+1556,AWS Cloud Map Resource
+1557,AWS Cloud Map Service
+1558,AWS Cloud WAN Core Network Edge
+1559,AWS Cloud WAN Segment Network
+1560,AWS Cloud WAN Transit Gateway Route Table Attachment
+1561,AWS Direct Connect Gateway
+1562,AWS Transit Gateway Attachment
+1563,Amazon API Gateway Endpoint
+1564,Amazon CloudFront Download Distribution
+1565,Amazon CloudFront Edge Location
+1566,Amazon CloudFront Functions
+1567,Amazon CloudFront Streaming Distribution
+1568,Amazon Route 53 Hosted Zone
+1569,Amazon Route 53 Readiness Checks
+1570,Amazon Route 53 Resolver DNS Firewall
+1571,Amazon Route 53 Resolver Query Logging
+1572,Amazon Route 53 Resolver
+1573,Amazon Route 53 Route Table
+1574,Amazon Route 53 Routing Controls
+1575,Amazon VPC Carrier Gateway
+1576,Amazon VPC Customer Gateway
+1577,Amazon VPC Elastic Network Adapter
+1578,Amazon VPC Elastic Network Interface
+1579,Amazon VPC Endpoints
+1580,Amazon VPC Flow Logs
+1581,Amazon VPC Internet Gateway
+1582,Amazon VPC NAT Gateway
+1583,Amazon VPC Network Access Analyzer
+1584,Amazon VPC Network Access Control List
+1585,Amazon VPC Peering Connection
+1586,Amazon VPC Reachability Analyzer
+1587,Amazon VPC Router
+1588,Amazon VPC Traffic Mirroring
+1589,Amazon VPC VPN Connection
+1590,Amazon VPC VPN Gateway
+1591,Amazon VPC Virtual private cloud VPC
+1592,Elastic Load Balancing Application Load Balancer
+1593,Elastic Load Balancing Classic Load Balancer
+1594,Elastic Load Balancing Gateway Load Balancer
+1595,Elastic Load Balancing Network Load Balancer
+1596,AWS Backup AWS Backup Support for VMware Workloads
+1597,AWS Backup AWS Backup for AWS CloudFormation
+1598,AWS Backup AWS Backup support for Amazon FSx for NetApp ONTAP
+1599,AWS Backup AWS Backup support for Amazon S3
+1600,AWS Backup Audit Manager
+1601,AWS Backup Backup Plan
+1602,AWS Backup Backup Restore
+1603,AWS Backup Backup Vault
+1604,AWS Backup Compliance Reporting
+1605,AWS Backup Compute
+1606,AWS Backup Database
+1607,AWS Backup Gateway
+1608,AWS Backup Legal Hold
+1609,AWS Backup Recovery Point Objective
+1610,AWS Backup Recovery Time Objective
+1611,AWS Backup Storage
+1612,AWS Backup Vault Lock
+1613,AWS Backup Virtual Machine Monitor
+1614,AWS Backup Virtual Machine
+1615,AWS Snowball Snowball Import Export
+1616,AWS Storage Gateway Amazon FSx File Gateway
+1617,AWS Storage Gateway Amazon S3 File Gateway
+1618,AWS Storage Gateway Cached Volume
+1619,AWS Storage Gateway File Gateway
+1620,AWS Storage Gateway Noncached Volume
+1621,AWS Storage Gateway Tape Gateway
+1622,AWS Storage Gateway Virtual Tape Library
+1623,AWS Storage Gateway Volume Gateway
+1624,Amazon Elastic Block Store Amazon Data Lifecycle Manager
+1625,Amazon Elastic Block Store Multiple Volumes
+1626,Amazon Elastic Block Store Snapshot
+1627,Amazon Elastic Block Store Volume gp3
+1628,Amazon Elastic Block Store Volume
+1629,Amazon Elastic File System EFS Intelligent Tiering
+1630,Amazon Elastic File System EFS One Zone Infrequent Access
+1631,Amazon Elastic File System EFS One Zone
+1632,Amazon Elastic File System EFS Standard Infrequent Access
+1633,Amazon Elastic File System EFS Standard
+1634,Amazon Elastic File System Elastic Throughput
+1635,Amazon Elastic File System File System
+1636,Amazon File Cache Hybrid NFS linked datasets
+1637,Amazon File Cache On premises NFS linked datasets
+1638,Amazon File Cache S3 linked datasets
+1639,Amazon Simple Storage Service Glacier Archive
+1640,Amazon Simple Storage Service Glacier Vault
+1641,Amazon Simple Storage Service Bucket With Objects
+1642,Amazon Simple Storage Service Bucket
+1643,Amazon Simple Storage Service Directory bucket
+1644,Amazon Simple Storage Service General Access Points
+1645,Amazon Simple Storage Service Object
+1646,Amazon Simple Storage Service S3 Batch Operations
+1647,Amazon Simple Storage Service S3 Express One Zone
+1648,Amazon Simple Storage Service S3 Glacier Deep Archive
+1649,Amazon Simple Storage Service S3 Glacier Flexible Retrieval
+1650,Amazon Simple Storage Service S3 Glacier Instant Retrieval
+1651,Amazon Simple Storage Service S3 Intelligent Tiering
+1652,Amazon Simple Storage Service S3 Multi Region Access Points
+1653,Amazon Simple Storage Service S3 Object Lambda Access Points
+1654,Amazon Simple Storage Service S3 Object Lambda
+1655,Amazon Simple Storage Service S3 Object Lock
+1656,Amazon Simple Storage Service S3 On Outposts
+1657,Amazon Simple Storage Service S3 One Zone IA
+1658,Amazon Simple Storage Service S3 Replication Time Control
+1659,Amazon Simple Storage Service S3 Replication
+1660,Amazon Simple Storage Service S3 Select
+1661,Amazon Simple Storage Service S3 Standard IA
+1662,Amazon Simple Storage Service S3 Standard
+1663,Amazon Simple Storage Service S3 Storage Lens
+1664,Amazon Simple Storage Service S3 Tables
+1665,Amazon Simple Storage Service S3 Vectors
+1666,Amazon Simple Storage Service VPC Access Points
+1667,Amazon DevOps Guru Insights
+1668,Amazon Rekognition Image
+1669,Amazon Rekognition Video
+1670,Amazon SageMaker AI Canvas
+1671,Amazon SageMaker AI Geospatial ML
+1672,Amazon SageMaker AI Model
+1673,Amazon SageMaker AI Notebook
+1674,Amazon SageMaker AI Shadow Testing
+1675,Amazon SageMaker AI Train
+1676,Amazon Textract Analyze Lending
+1677,Amazon Elastic Container Registry Image
+1678,Amazon Elastic Container Registry Registry
+1679,Amazon Elastic Container Service Container 1
+1680,Amazon Elastic Container Service Container 2
+1681,Amazon Elastic Container Service Container 3
+1682,Amazon Elastic Container Service CopiIoT CLI
+1683,Amazon Elastic Container Service ECS Service Connect
+1684,Amazon Elastic Container Service Service
+1685,Amazon Elastic Container Service Task
+1686,Amazon Elastic Kubernetes Service EKS on Outposts
+1687,AWS Management Console 48 Dark
+1688,Alert 48 Dark
+1689,Authenticated User 48 Dark
+1690,Camera 48 Dark
+1691,Chat 48 Dark
+1692,Client 48 Dark
+1693,Cold Storage 48 Dark
+1694,Credentials 48 Dark
+1695,Data Stream 48 Dark
+1696,Data Table 48 Dark
+1697,Database 48 Dark
+1698,Disk 48 Dark
+1699,Document 48 Dark
+1700,Documents 48 Dark
+1701,Email 48 Dark
+1702,Firewall 48 Dark
+1703,Folder 48 Dark
+1704,Folders 48 Dark
+1705,Forums 48 Dark
+1706,Gear 48 Dark
+1707,Generic Application 48 Dark
+1708,Git Repository 48 Dark
+1709,Globe 48 Dark
+1710,Internet alt1 48 Dark
+1711,Internet alt2 48 Dark
+1712,Internet 48 Dark
+1713,JSON Script 48 Dark
+1714,Logs 48 Dark
+1715,Magnifying Glass 48 Dark
+1716,Metrics 48 Dark
+1717,Mobile client 48 Dark
+1718,Multimedia 48 Dark
+1719,Office building 48 Dark
+1720,Programming Language 48 Dark
+1721,Question 48 Dark
+1722,Recover 48 Dark
+1723,SAML token 48 Dark
+1724,SDK 48 Dark
+1725,SSL padlock 48 Dark
+1726,Server 48 Dark
+1727,Servers 48 Dark
+1728,Shield 48 Dark
+1729,Source Code 48 Dark
+1730,Tape storage 48 Dark
+1731,Toolkit 48 Dark
+1732,User 48 Dark
+1733,Users 48 Dark
+1734,AWS Management Console 48 Light
+1735,Alert 48 Light
+1736,Authenticated User 48 Light
+1737,Camera 48 Light
+1738,Chat 48 Light
+1739,Client 48 Light
+1740,Cold Storage 48 Light
+1741,Credentials 48 Light
+1742,Data Stream 48 Light
+1743,Data Table 48 Light
+1744,Database 48 Light
+1745,Disk 48 Light
+1746,Document 48 Light
+1747,Documents 48 Light
+1748,Email 48 Light
+1749,Firewall 48 Light
+1750,Folder 48 Light
+1751,Folders 48 Light
+1752,Forums 48 Light
+1753,Gear 48 Light
+1754,Generic Application 48 Light
+1755,Git Repository 48 Light
+1756,Globe 48 Light
+1757,Internet alt1 48 Light
+1758,Internet alt2 48 Light
+1759,Internet 48 Light
+1760,JSON Script 48 Light
+1761,Logs 48 Light
+1762,Magnifying Glass 48 Light
+1763,Metrics 48 Light
+1764,Mobile client 48 Light
+1765,Multimedia 48 Light
+1766,Office building 48 Light
+1767,Programming Language 48 Light
+1768,Question 48 Light
+1769,Recover 48 Light
+1770,SAML token 48 Light
+1771,SDK 48 Light
+1772,SSL padlock 48 Light
+1773,Server 48 Light
+1774,Servers 48 Light
+1775,Shield 48 Light
+1776,Source Code 48 Light
+1777,Tape storage 48 Light
+1778,Toolkit 48 Light
+1779,User 48 Light
+1780,Users 48 Light
+1781,AWS Elastic Beanstalk Application
+1782,AWS Elastic Beanstalk Deployment
+1783,AWS Lambda Lambda Function
+1784,Amazon EC2 AMI
+1785,Amazon EC2 AWS Microservice Extractor for .NET
+1786,Amazon EC2 Auto Scaling
+1787,Amazon EC2 DB Instance
+1788,Amazon EC2 Elastic IP Address
+1789,Amazon EC2 Instance with CloudWatch
+1790,Amazon EC2 Instance
+1791,Amazon EC2 Instances
+1792,Amazon EC2 Rescue
+1793,Amazon EC2 Spot Instance
+1794,AWS Database Migration Service Database migration workflow or job
+1795,Amazon Aurora Instance
+1796,Amazon Aurora MariaDB Instance Alternate
+1797,Amazon Aurora MariaDB Instance
+1798,Amazon Aurora MySQL Instance Alternate
+1799,Amazon Aurora MySQL Instance
+1800,Amazon Aurora Oracle Instance Alternate
+1801,Amazon Aurora Oracle Instance
+1802,Amazon Aurora PIOPS Instance
+1803,Amazon Aurora PostgreSQL Instance Alternate
+1804,Amazon Aurora PostgreSQL Instance
+1805,Amazon Aurora SQL Server Instance Alternate
+1806,Amazon Aurora SQL Server Instance
+1807,Amazon Aurora Amazon Aurora Instance alternate
+1808,Amazon Aurora Amazon RDS Instance Aternate
+1809,Amazon Aurora Amazon RDS Instance
+1810,Amazon Aurora Trusted Language Extensions for PostgreSQL
+1811,Amazon DocumentDB Elastic Clusters
+1812,Amazon DynamoDB Amazon DynamoDB Accelerator
+1813,Amazon DynamoDB Attribute
+1814,Amazon DynamoDB Attributes
+1815,Amazon DynamoDB Global secondary index
+1816,Amazon DynamoDB Item
+1817,Amazon DynamoDB Items
+1818,Amazon DynamoDB Standard Access Table Class
+1819,Amazon DynamoDB Standard Infrequent Access Table Class
+1820,Amazon DynamoDB Stream
+1821,Amazon DynamoDB Table
+1822,Amazon ElastiCache Cache Node
+1823,Amazon ElastiCache ElastiCache for Memcached
+1824,Amazon ElastiCache ElastiCache for Redis
+1825,Amazon ElastiCache ElastiCache for Valkey
+1826,Amazon RDS Proxy Instance Alternate
+1827,Amazon RDS Proxy Instance
+1828,Amazon RDS Blue Green Deployments
+1829,Amazon RDS Multi AZ DB Cluster
+1830,Amazon RDS Multi AZ
+1831,Amazon RDS Optimized Writes
+1832,Amazon RDS Trusted Language Extensions for PostgreSQL
+1833,AWS Application Discovery Service AWS Agentless Collector
+1834,AWS Application Discovery Service AWS Discovery Agent
+1835,AWS Application Discovery Service Migration Evaluator Collector
+1836,AWS DataSync Discovery
+1837,AWS Datasync Agent
+1838,AWS Mainframe Modernization Analyzer
+1839,AWS Mainframe Modernization Compiler
+1840,AWS Mainframe Modernization Converter
+1841,AWS Mainframe Modernization Developer
+1842,AWS Mainframe Modernization Runtime
+1843,AWS Migration Hub Refactor Spaces Applications
+1844,AWS Migration Hub Refactor Spaces Environments
+1845,AWS Migration Hub Refactor Spaces Services
+1846,AWS Transfer Family AWS AS2
+1847,AWS Transfer Family AWS FTPS
+1848,AWS Transfer Family AWS FTP
+1849,AWS Transfer Family AWS SFTP
+1850,AWS Cloud Digital Interface
+1851,AWS Elemental MediaConnect MediaConnect Gateway
+1852,AWS Amplify AWS Amplify Studio
+1853,Amazon Location Service Geofence
+1854,Amazon Location Service Map 
+1855,Amazon Location Service Place
+1856,Amazon Location Service Routes
+1857,Amazon Location Service Track 
+1858,AWS Cloud9 Cloud9
+1859,Amazon Pinpoint Journey
+1860,Amazon Simple Email Service Email
+1861,AWS Account
+1862,AWS Cloud logo
+1863,AWS Cloud logo 32 Dark
+1864,AWS Cloud
+1865,AWS Cloud 32 Dark
+1866,AWS IoT Greengrass Deployment
+1867,Auto Scaling group
+1868,Corporate data center
+1869,EC2 instance contents
+1870,Private subnet
+1871,Public subnet
+1872,Region
+1873,Server contents
+1874,Spot Fleet
+1875,Virtual private cloud VPC

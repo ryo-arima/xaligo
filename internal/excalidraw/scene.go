@@ -202,8 +202,8 @@ func BuildJSON(root *layout.Box, svgGroupDir string, catalogCSV string, projectR
 }
 
 func walk(b *layout.Box, elements *[]map[string]any, files map[string]any, svgGroupDir string, catalogCSV string, projectRoot string, r *rand.Rand, visibleAncestor *layout.Box, itemGroups map[string][]*layout.Box, ancestorBoxes map[string]*layout.Box) {
-	if b.Tag == "item" {
-		// 描画はしない: visibleAncestor に結び付けて収集のみ
+	if layout.IsItemLike(b.Tag) {
+		// 描画はしない: visibleAncestor に結び付けて収集のみ (<item> / <spacer> 共通)
 		key := visibleAncestor.ID
 		itemGroups[key] = append(itemGroups[key], b)
 		ancestorBoxes[key] = visibleAncestor
@@ -220,7 +220,7 @@ func walk(b *layout.Box, elements *[]map[string]any, files map[string]any, svgGr
 			b.Label, b.Tag, b.W, b.H, layout.MinBoxWidth, layout.MinBoxHeight)
 		// 子の item も同じ visibleAncestor に結び付けて収集
 		for _, c := range b.Children {
-			if c.Tag == "item" {
+			if layout.IsItemLike(c.Tag) {
 				key := visibleAncestor.ID
 				itemGroups[key] = append(itemGroups[key], c)
 				ancestorBoxes[key] = visibleAncestor
@@ -488,29 +488,32 @@ func textWidth(s string, charW float64) float64 {
 
 // renderItemGrid lays out all items collected under the same visibleAncestor
 // as a single horizontal row (no line wrap) within that ancestor's bounds.
-// Items are placed below the group header row (GroupTopInset) so they don't
-// overlap the ancestor's label or border icon.
+// Items are placed below the group header row (GroupTopInset) for AWS group ancestors
+// so they don't overlap the header icon/label.
 func renderItemGrid(items []*layout.Box, ancestor *layout.Box, elements *[]map[string]any, files map[string]any, catalogCSV string, projectRoot string, maxSize float64, r *rand.Rand, itemImgRects map[int][4]float64, itemLblRects map[int][4]float64, itemImgIDs map[int]string, itemLblIDs map[int]string) {
 	if catalogCSV == "" || len(items) == 0 || ancestor == nil {
 		return
 	}
 	n := float64(len(items))
 
-	// ラベルテキストボックスの終端 X を求める (walk の label 描画と同じロジック)
-	labelStartX := ancestor.X + 4.0
-	if gd, ok := awsGroups[ancestor.Tag]; ok && gd.IconFile != "" {
-		labelStartX = ancestor.X + float64(groupIconSize) + 4
+	var itemStartX, iconY, availW, iconSizeH float64
+
+	if _, isGroup := awsGroups[ancestor.Tag]; isGroup {
+		// AWS グループタグ: ヘッダー（アイコン＋ラベル）はトップに固定されているため
+		// アイテムはヘッダー下から配置する。
+		itemStartX = ancestor.X + layout.GroupSideInset
+		availW = ancestor.W - layout.GroupSideInset*2
+		iconY = ancestor.Y + layout.GroupTopInset + itemGap
+		iconSizeH = ancestor.H - layout.GroupTopInset - itemGap - itemLabelH - 4
+	} else {
+		// 汎用コンテナ (frame, container, col など): 上端 + gap から配置。
+		itemStartX = ancestor.X + itemGap
+		availW = ancestor.W - itemGap*2
+		iconY = ancestor.Y + itemGap
+		iconSizeH = ancestor.H - itemGap*2 - itemLabelH - 4
 	}
-	lblW := textWidth(ancestor.Label, 7.5)
-	// item はラベルテキストの右端 + gap から開始
-	itemStartX := labelStartX + lblW + itemGap
 
-	// 右端 (GroupSideInset 分の余白) までの幅
-	availW := ancestor.X + ancestor.W - layout.GroupSideInset - itemStartX
 	iconSizeW := (availW - itemGap*(n-1)) / n
-
-	// 高さ: テキストボックス行は考慮しない。ancestor 全体高から上下 padding と item ラベル分のみ引く
-	iconSizeH := ancestor.H - itemGap*2 - itemLabelH - 4
 
 	iconSize := iconSizeW
 	if iconSizeH < iconSize {
@@ -523,8 +526,6 @@ func renderItemGrid(items []*layout.Box, ancestor *layout.Box, elements *[]map[s
 		iconSize = itemMinSize
 	}
 
-	// ancestor の高さ方向に上寄せ (上 padding = itemGap)
-	iconY := ancestor.Y + itemGap
 	for i, item := range items {
 		iconX := itemStartX + float64(i)*(iconSize+itemGap)
 		renderIconAt(item.ID, item.Attrs["id"], iconX, iconY, iconSize, elements, files, catalogCSV, projectRoot, r, itemImgRects, itemLblRects, itemImgIDs, itemLblIDs)
@@ -762,8 +763,15 @@ func renderConnections(connections []*model.Node, itemImgRects map[int][4]float6
 		srcFP := fixedPointForSide(srcSide)
 		dstFP := fixedPointForSide(dstSide)
 
-		seed := r.Intn(99999999)
+		// seed は src/dst/index から決定論的に計算し、再生成しても描画ばらつきが出ないようにする。
+		seed := srcID*1_000_000 + dstID*1_000 + i + 1
 		connID := fmt.Sprintf("conn-%d-%d-%d", srcID, dstID, i)
+
+		// arrowhead-size 属性: "s" / "m" / "l"。未指定時は最小 "s" を使用する。
+		ahSize := strings.TrimSpace(conn.Attrs["arrowhead-size"])
+		if ahSize != "s" && ahSize != "m" && ahSize != "l" {
+			ahSize = "s"
+		}
 
 		*elements = append(*elements, map[string]any{
 			"id": connID, "type": "arrow",
@@ -771,7 +779,7 @@ func renderConnections(connections []*model.Node, itemImgRects map[int][4]float6
 			"width": math.Abs(dx), "height": math.Abs(dy),
 			"angle": 0,
 			"strokeColor": "#1e1e1e", "backgroundColor": "transparent",
-			"fillStyle": "solid", "strokeWidth": 2, "strokeStyle": "solid",
+			"fillStyle": "solid", "strokeWidth": 1, "strokeStyle": "solid",
 			"roughness": 0, "opacity": 100,
 			"groupIds": []string{}, "roundness": map[string]any{"type": 2},
 			"seed": seed, "version": 1, "versionNonce": seed,
@@ -791,9 +799,11 @@ func renderConnections(connections []*model.Node, itemImgRects map[int][4]float6
 				"gap":        5.0,
 				"fixedPoint": []float64{dstFP[0], dstFP[1]},
 			},
-			"startArrowhead": nil,
-			"endArrowhead":   "arrow",
-			"elbowed":        true,
+			"startArrowhead":     nil,
+			"endArrowhead":       "arrow",
+			"endArrowheadSize":   ahSize,
+			"startArrowheadSize": ahSize,
+			"elbowed":            true,
 		})
 
 		// Register this arrow in boundMap for both endpoints.

@@ -103,23 +103,29 @@ Parameters correspond to options in generate_aws_frames.py:
 
 func initGenerateExcalidrawCmd() *cobra.Command {
 	var (
-		xalPath string
-		output  string
+		xalPath      string
+		output       string
+		servicesFile string
 	)
 
 	cmd := &cobra.Command{
 		Use:   "excalidraw",
 		Short: "Render a .xal file into a .excalidraw file",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return RunRender(xalPath, output)
+			if err := RunRender(xalPath, output); err != nil {
+				return err
+			}
+			return RunAddServiceBatch(output, servicesFile)
 		},
 	}
 
 	cmd.Flags().StringVar(&xalPath, "xal", "", "input .xal file path")
 	cmd.Flags().StringVarP(&output, "output", "o", "", "output .excalidraw file path")
+	cmd.Flags().StringVar(&servicesFile, "services", "", "services.csv listing AWS service icons to embed as legend")
 
 	_ = cmd.MarkFlagRequired("xal")
 	_ = cmd.MarkFlagRequired("output")
+	_ = cmd.MarkFlagRequired("services")
 
 	return cmd
 }

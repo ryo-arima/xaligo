@@ -76,145 +76,140 @@ Examples:
 				entries = []entity.ServiceEntry{{OfficialName: name}}
 			}
 
-			scene, err := repository.ReadScene(targetFile)
-			if err != nil {
-				return fmt.Errorf("read scene %s: %w", targetFile, err)
-			}
-			if scene.Files == nil {
-				scene.Files = map[string]map[string]interface{}{}
-			}
-
-			lgSz := float64(cfg.Legend.IconSize) // default 32
-			sz := math.Min(float64(size), lgSz)  // align to smaller of the two
-			iconGap := 20.0
-			lgFs := cfg.Legend.FontSize
-			lgLabelW := math.Max(200.0, lgSz*2)
-
-			for i, entry := range entries {
-				if entry.OfficialName == "" {
-					continue
-				}
-
-				// ── find icon & load data URL ──────────────────────────────────
-				var svgPath, displayName, dataURL string
-				if entry.CatalogID > 0 {
-					// ID-based direct lookup in service-catalog.csv
-					var idErr error
-					svgPath, dataURL, idErr = repository.LoadFromCSVByID(cfg.ServiceCatalogCSVPath(), entry.CatalogID, entry.OfficialName)
-					if idErr != nil {
-						fmt.Fprintf(os.Stderr, "warn: %v (skipping)\n", idErr)
-						continue
-					}
-					displayName = entry.OfficialName
-				} else {
-					// Filesystem search fallback
-					var fsErr error
-					svgPath, displayName, fsErr = findServiceIcon(cfg.AssetDir(), category, entry.OfficialName, size)
-					if fsErr != nil {
-						fmt.Fprintf(os.Stderr, "warn: %v (skipping)\n", fsErr)
-						continue
-					}
-					svgFilename := filepath.Base(svgPath)
-					var csvErr error
-					dataURL, csvErr = repository.LoadFromCSV(cfg.ServiceCatalogCSVPath(), svgFilename)
-					if csvErr != nil {
-						// Fallback: load directly from SVG file
-						var svgErr error
-						dataURL, svgErr = repository.SvgToDataURL(svgPath)
-						if svgErr != nil {
-							fmt.Fprintf(os.Stderr, "warn: load icon %s: %v (skipping)\n", svgPath, svgErr)
-							continue
-						}
-					}
-				}
-
-				iconColor := repository.SVGBGColor(dataURL)
-
-				fid := repository.FileID(svgPath)
-				scene.Files[fid] = map[string]interface{}{
-					"mimeType":      "image/svg+xml",
-					"id":            fid,
-					"dataURL":       dataURL,
-					"created":       int64(1709000000000),
-					"lastRetrieved": int64(1709000000000),
-				}
-
-				eid := fmt.Sprintf("svc-%s-%d", randomHex(4), i)
-
-				// ── auto-position: icon outside-bottom of frame ────────────────
-				fb := frameBounds(scene)
-				iconX, iconY := nextIconPos(scene, fb, sz, iconGap)
-
-				scene.Elements = append(scene.Elements,
-					repository.MakeImage(eid, iconX, iconY, sz, sz, fid, iconColor, 6000+i))
-
-				// ── label below icon ───────────────────────────────────────────
-				labelText := entry.ShortLabel()
-				labelW := sz // same width as icon; center-aligned text fits within
-				labelX := iconX
-				labelY := iconY + sz + 4
-
-				lblEl := repository.MakeText(eid+"-lbl", labelX, labelY, labelW, 14, labelText, 12, "#000000", false, 6100+i)
-				lblEl["textAlign"] = "center"
-				scene.Elements = append(scene.Elements, lblEl)
-
-				// ── legend entry ───────────────────────────────────────────────
-				if !noLegend {
-					lgFid := repository.FileID(svgPath + "-lg")
-					if _, exists := scene.Files[lgFid]; !exists {
-						scene.Files[lgFid] = map[string]interface{}{
-							"mimeType":      "image/svg+xml",
-							"id":            lgFid,
-							"dataURL":       dataURL,
-							"created":       int64(1709000000000),
-							"lastRetrieved": int64(1709000000000),
-						}
-					}
-
-					var lgX, lgY float64
-					if isBatch {
-						lgX, lgY = nextLegendPosRight(scene, fb, lgSz, lgLabelW, 4)
-					} else {
-						lgX, lgY = nextLegendPosLeft(scene, fb, lgSz, lgLabelW, 4)
-					}
-
-					scene.Elements = append(scene.Elements,
-						repository.MakeImage(eid+"-lg-ico", lgX, lgY, lgSz, lgSz, lgFid, iconColor, 6201+i))
-
-					lgLblX := lgX + lgSz + 6
-					lgLblY := lgY + (lgSz-float64(lgFs))/2
-					scene.Elements = append(scene.Elements,
-					repository.MakeText(eid+"-lg-lbl", lgLblX, lgLblY, lgLabelW, float64(lgFs), displayName, lgFs, "#000000", false, 6200+i))
-				}
-
-				fmt.Printf("added: %s\n", displayName)
-			}
-
-			if err := repository.WriteScene(scene, targetFile); err != nil {
-				return err
-			}
-			fmt.Printf("written: %s\n", targetFile)
-			return nil
+			return runAddBatch(targetFile, entries, category, size, noLegend, isBatch)
 		},
 	}
 
-	cmd.Flags().StringVarP(&targetFile, "file", "f", "", "target .excalidraw file (default: output/aws-frames/A4-landscape.excalidraw)")
-	cmd.Flags().StringVarP(&listFile, "list", "l", "", "path to a CSV/TXT service list (batch mode)")
-	cmd.Flags().StringVar(&category, "category", "", "service icon category, e.g. Arch_Compute (optional, speeds up search)")
-	cmd.Flags().StringVarP(&name, "name", "n", "", "service name to search for (single add mode)")
-	cmd.Flags().IntVar(&size, "size", 64, "icon size in pixels (16 | 32 | 48 | 64)")
-	cmd.Flags().BoolVar(&noLegend, "no-legend", false, "omit the legend entry")
+	cmd.Flags().StringVarP(&targetFile, "file", "f", "", "target .excalidraw file (required)")
+	cmd.Flags().StringVar(&listFile, "list", "", "CSV file listing services to add (batch mode)")
+	cmd.Flags().StringVar(&name, "name", "", "service name to add (single mode)")
+	cmd.Flags().StringVar(&category, "category", "", "Architecture-Service-Icons category subdirectory")
+	cmd.Flags().IntVar(&size, "size", 64, "icon size in pixels")
+	cmd.Flags().BoolVar(&noLegend, "no-legend", false, "skip adding legend entries")
+	_ = cmd.MarkFlagRequired("file")
+
 	return cmd
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Exported batch helper
+
+// RunAddServiceBatch reads listFile (services.csv) and adds all listed service
+// icons to targetFile with legend entries stacked on the right side of the frame.
+func RunAddServiceBatch(targetFile, listFile string) error {
+	entries, err := repository.ReadServiceList(listFile)
+	if err != nil {
+		return fmt.Errorf("read list %s: %w", listFile, err)
+	}
+	return runAddBatch(targetFile, entries, "", 64, false, true)
+}
+
+// runAddBatch is the shared implementation used by both the --list flag and
+// RunAddServiceBatch. legendRight=true places legend entries on the right of
+// the frame; false places them on the left.
+func runAddBatch(targetFile string, entries []entity.ServiceEntry, category string, size int, noLegend, legendRight bool) error {
+	cfg := config.New()
+	scene, err := repository.ReadScene(targetFile)
+	if err != nil {
+		return err
+	}
+
+	fb := frameBounds(scene)
+	iconSize := float64(size)
+	gap := float64(16)
+	lgSz := float64(32)
+	lgLabelW := float64(120)
+
+	for _, entry := range entries {
+		var dataURL string
+		var displayName string
+
+		if entry.CatalogID > 0 {
+			ce, cerr := repository.LookupCatalogByID(cfg.ServiceCatalogCSVPath(), entry.CatalogID)
+			if cerr != nil {
+				_, _ = fmt.Fprintf(os.Stderr, "warn: catalog ID %d: %v\n", entry.CatalogID, cerr)
+				continue
+			}
+			dataURL = ce.DataURL
+			displayName = ce.Service
+		} else {
+			svgPath, svgName, serr := findServiceIcon(cfg.AssetDir(), category, entry.OfficialName, size)
+			if serr != nil {
+				_, _ = fmt.Fprintf(os.Stderr, "warn: %v\n", serr)
+				continue
+			}
+			displayName = svgName
+			var derr error
+			dataURL, derr = repository.SvgToDataURL(svgPath)
+			if derr != nil {
+				_, _ = fmt.Fprintf(os.Stderr, "warn: %v\n", derr)
+				continue
+			}
+		}
+
+		if entry.OfficialName != "" {
+			displayName = entry.OfficialName
+		}
+
+		fileID := repository.FileID(dataURL)
+		bgColor := repository.SVGBGColor(dataURL)
+		if scene.Files == nil {
+			scene.Files = map[string]map[string]interface{}{}
+		}
+		if _, exists := scene.Files[fileID]; !exists {
+			scene.Files[fileID] = map[string]interface{}{
+				"mimeType": "image/svg+xml",
+				"id":       fileID,
+				"dataURL":  dataURL,
+				"created":  int64(1709000000000),
+			}
+		}
+
+		// Main icon (outside-bottom of frame)
+		ix, iy := nextIconPos(scene, fb, iconSize, gap)
+		iconID := "svc-" + randomHex(8)
+		seedVal := int(ix*100 + iy)
+		iconEl := repository.MakeImage(iconID, ix, iy, iconSize, iconSize, fileID, bgColor, seedVal)
+		scene.Elements = append(scene.Elements, iconEl)
+
+		// Label below main icon
+		label := entry.ShortLabel()
+		if label == "" {
+			label = shortServiceName(displayName)
+		}
+		labelID := "svc-lbl-" + randomHex(8)
+		labelEl := repository.MakeText(labelID, ix, iy+iconSize+4, iconSize+24, 20, label, 12, "#000000", false, seedVal+1)
+		scene.Elements = append(scene.Elements, labelEl)
+
+		// Legend entry
+		if !noLegend {
+			var lgX, lgY float64
+			if legendRight {
+				lgX, lgY = nextLegendPosRight(scene, fb, lgSz, lgLabelW, gap)
+			} else {
+				lgX, lgY = nextLegendPosLeft(scene, fb, lgSz, lgLabelW, gap)
+			}
+			lgID := "svc-" + randomHex(8) + "-lg-ico"
+			lgEl := repository.MakeImage(lgID, lgX, lgY, lgSz, lgSz, fileID, bgColor, seedVal+2)
+			scene.Elements = append(scene.Elements, lgEl)
+
+			lgLblID := "svc-lbl-" + randomHex(8) + "-lg"
+			lgLblEl := repository.MakeText(lgLblID, lgX+lgSz+6, lgY+(lgSz-14)/2, lgLabelW, 20, label, 12, "#000000", false, seedVal+3)
+			scene.Elements = append(scene.Elements, lgLblEl)
+		}
+	}
+
+	return repository.WriteScene(scene, targetFile)
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Layout helpers
 
-// frameBBox is the bounding box of the first frame in the scene.
+// frameBBox holds the bounding rectangle of the frame or all elements.
 type frameBBox struct{ x, y, w, h float64 }
 
-// frameBounds returns the bounding box of the first "frame" element,
-// or falls back to the overall element bounding box.
+// frameBounds finds the first "frame" element in the scene or falls back to
+// the overall bounding box of all elements.
 func frameBounds(scene *entity.Scene) frameBBox {
 	// 1. Look for the first element whose type is "frame"
 	for _, el := range scene.Elements {

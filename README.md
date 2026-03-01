@@ -3,6 +3,8 @@
 A Go CLI tool that converts a Vue-style DSL (`.xal`) into **Excalidraw JSON**.  
 Includes Vuetify-style spacing/grid layout and AWS architecture diagram group tags.
 
+> **For automated agents (codex-cli, GPT, etc.):** see [docs/agents/general.md](docs/agents/general.md) for detailed step-by-step procedures.
+
 ## Installation
 
 ```bash
@@ -16,10 +18,12 @@ make build        # produces .bin/xaligo
 
 | Command | Description |
 |---|---|
-| `xaligo generate excalidraw --xal <file.xal> -o <out.excalidraw>` | Convert .xal → .excalidraw |
+| `xaligo generate excalidraw --xal <file.xal> -o <out.excalidraw> --services <csv>` | Convert .xal → .excalidraw with service legend (`--services` required) |
 | `xaligo generate xal [flags] -o <out.xal>` | Auto-generate an AWS infrastructure hierarchy .xal |
-| `xaligo add service --name <name> --file <file>` | Add a single AWS service icon |
-| `xaligo add service --list <csv> --file <file>` | Bulk-add AWS service icons |
+| `xaligo render <file.xal> -o <out.excalidraw>` | Convert .xal → .excalidraw without legend |
+| `xaligo add service --name <name> --file <file>` | Add a single AWS service icon to an existing file |
+| `xaligo add service --list <csv> --file <file>` | Bulk-add AWS service icons to an existing file |
+| `xaligo init [-o <dir>]` | Generate a sample.xal |
 | `xaligo version` | Print version |
 
 ### generate xal flags
@@ -40,16 +44,42 @@ make build        # produces .bin/xaligo
 
 ## Quick Start
 
-```bash
-# Auto-generate a .xal for an AWS configuration
-.bin/xaligo generate xal --clouds 1 --accounts 1 --regions 2 --azs 2 \
-  --az-layout staggered -o output/infra.xal
+### Option A — Start from a hand-crafted diagram
 
-# Convert the .xal to .excalidraw
-.bin/xaligo generate excalidraw --xal output/infra.xal -o output/infra.excalidraw
+```bash
+# 1. Find the catalog IDs for the services you need
+grep -i "ec2\|rds\|cloudfront" etc/resources/aws/service-index.csv
+
+# 2. Create services.csv (id,OfficialName,Abbreviation,Summary,Usage,Notes)
+#    See examples/services.csv for reference
+
+# 3. Write your .xal layout file
+#    See examples/sample.xal for a 3-tier architecture example
+
+# 4. Generate
+mkdir -p output
+.bin/xaligo generate excalidraw \
+  --xal examples/sample.xal \
+  -o output/sample.excalidraw \
+  --services examples/services.csv
 ```
 
-Import `output/infra.excalidraw` into Excalidraw.
+### Option B — Auto-generate an AWS hierarchy
+
+```bash
+# Generate a .xal for an AWS configuration
+.bin/xaligo generate xal --clouds 1 --accounts 1 --regions 2 --azs 2 \
+  --az-layout staggered --subnets 2 --spacing both --start top \
+  --paper A4 --orientation landscape -o output/infra.xal
+
+# Convert to .excalidraw
+.bin/xaligo generate excalidraw \
+  --xal output/infra.xal \
+  -o output/infra.excalidraw \
+  --services examples/services.csv
+```
+
+Import the generated `.excalidraw` file into [Excalidraw](https://excalidraw.com).
 
 ## .xal DSL
 
@@ -154,41 +184,47 @@ Unit is `8px`. Multiple classes are space-separated: `class="pa-4 ml-2"`
 
 ## Sample DSL
 
+See [examples/sample.xal](examples/sample.xal) for a full 3-tier architecture example.
+The snippet below shows the essential structure:
+
 ```xml
-<frame width="1122" height="794" class="pa-4">
-  <aws-cloud title="AWS Cloud 1">
-    <aws-account title="Account 1">
+<frame width="1200" height="820" class="pa-4">
+  <aws-cloud title="AWS Cloud">
+    <aws-account title="Production Account">
+      <region title="ap-northeast-1">
+        <vpc title="VPC (10.0.0.0/16)">
+          <availability-zone title="AZ: ap-northeast-1a">
 
-      <!-- Region 1: 80% of total height (row="4") -->
-      <region title="Region 1" row="4">
-        <vpc title="VPC 1" class="ml-2" layout="staggered">
-          <availability-zone title="AZ 1">
-            <public-subnet title="Public Subnet 1" row="2">
-              <item id="1178" /><item id="1189" />
+            <!-- Tier 1: Presentation (public) -->
+            <public-subnet title="Tier 1 — Presentation" row="3">
+              <item id="1179" />  <!-- Route 53 -->
+              <item id="1581" />  <!-- Internet Gateway -->
+              <item id="1182" />  <!-- ELB -->
             </public-subnet>
-            <!-- visible="false": border hidden but layout space is preserved -->
-            <private-subnet title="Private Subnet 1" visible="false">
-              <item id="1179" /><item id="1183" />
+
+            <!-- Tier 2: Application (private) -->
+            <private-subnet title="Tier 2 — Application" row="2">
+              <item id="27" />    <!-- EC2 -->
+              <item id="1582" />  <!-- NAT Gateway -->
             </private-subnet>
-          </availability-zone>
-          <availability-zone title="AZ 2">
-            <public-subnet title="Public Subnet 1" />
-            <private-subnet title="Private Subnet 1" />
+
+            <!-- Tier 3: Data (private) -->
+            <private-subnet title="Tier 3 — Data" row="2">
+              <item id="110" />   <!-- Aurora -->
+              <item id="113" />   <!-- ElastiCache -->
+            </private-subnet>
+
           </availability-zone>
         </vpc>
       </region>
-
-      <!-- Region 2: 20% of total height (row="1") — horizontal subnets -->
-      <region title="Region 2" row="1">
-        <vpc title="VPC 2" class="ml-2" layout="horizontal" gap="12">
-          <public-subnet title="Public Subnet 1" col="2" />
-          <private-subnet title="Private Subnet 1" col="1" />
-          <private-subnet title="Private Subnet 2" col="1" />
-        </vpc>
-      </region>
-
     </aws-account>
   </aws-cloud>
+
+  <!-- connections must be direct children of <frame>, placed last -->
+  <connection src="1179" dst="1182" />
+  <connection src="1182" dst="27" />
+  <connection src="27" dst="110" />
+  <connection src="27" dst="113" />
 </frame>
 ```
 

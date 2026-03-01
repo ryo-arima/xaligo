@@ -82,13 +82,32 @@ func layoutKids(node *model.Node) []*model.Node {
 
 func layoutNode(node *model.Node, target *Box, x, y, w, h float64) {
 	target.Attrs = node.Attrs
-	pad, mar := parseClassSpacing(node.Attr("class"))
+	pad, classMar := parseClassSpacing(node.Attr("class"))
+
+	// 直接 px 指定マージン属性をクラスベースマージンに加算する
+	attrMar := parseAttrMargin(node.Attrs)
+	mar := Spacing{
+		Top:    classMar.Top + attrMar.Top,
+		Right:  classMar.Right + attrMar.Right,
+		Bottom: classMar.Bottom + attrMar.Bottom,
+		Left:   classMar.Left + attrMar.Left,
+	}
 
 	// margin は親から渡された割り当て領域を削る (sibling spacing)
 	boxX := x + mar.Left
 	boxY := y + mar.Top
 	boxW := w - mar.Left - mar.Right
 	boxH := h - mar.Top - mar.Bottom
+
+	// width 属性が指定されていれば親計算値を上書きする (frame ルートは除く)
+	if node.Tag != "frame" {
+		if wv := node.Attr("width"); wv != "" {
+			if ew := attrFloat(wv, 0); ew > 0 {
+				boxW = ew
+			}
+		}
+	}
+
 	target.X = boxX
 	target.Y = boxY
 	target.W = boxW
@@ -120,10 +139,10 @@ func layoutNode(node *model.Node, target *Box, x, y, w, h float64) {
 		// 子要素があればコンテナ, なければリーフとして扱う。
 		kids := layoutKids(node)
 		if len(kids) > 0 {
-			// <item> のみの親はグループアイコン/ラベルがないので topInset を適用しない
+			// <item> / <spacer> のみの親はグループアイコン/ラベルがないので topInset を適用しない
 			allItems := true
 			for _, ch := range kids {
-				if ch.Tag != "item" {
+				if !IsItemLike(ch.Tag) {
 					allItems = false
 					break
 				}
@@ -164,7 +183,7 @@ func layoutStack(node *model.Node, target *Box, x, y, w, h float64) {
 	totalMarginH := 0.0
 	totalRow := 0.0
 	for _, child := range children {
-		_, childMar := parseClassSpacing(child.Attr("class"))
+		childMar := effectiveMargin(child)
 		totalMarginH += childMar.Top + childMar.Bottom
 		totalRow += attrFloat(child.Attr("row"), 1.0)
 	}
@@ -172,7 +191,7 @@ func layoutStack(node *model.Node, target *Box, x, y, w, h float64) {
 
 	curY := y
 	for i, child := range children {
-		_, childMar := parseClassSpacing(child.Attr("class"))
+		childMar := effectiveMargin(child)
 		row := attrFloat(child.Attr("row"), 1.0)
 		// 子への割り当て = 比率に応じた content 高さ + その子自身の上下 margin
 		childH := availH * (row / totalRow)
@@ -199,7 +218,7 @@ func layoutFlexH(node *model.Node, target *Box, x, y, w, h float64) {
 	totalMarginW := 0.0
 	totalCol := 0.0
 	for _, child := range children {
-		_, childMar := parseClassSpacing(child.Attr("class"))
+		childMar := effectiveMargin(child)
 		totalMarginW += childMar.Left + childMar.Right
 		totalCol += attrFloat(child.Attr("col"), 1.0)
 	}
@@ -207,7 +226,7 @@ func layoutFlexH(node *model.Node, target *Box, x, y, w, h float64) {
 
 	curX := x
 	for i, child := range children {
-		_, childMar := parseClassSpacing(child.Attr("class"))
+		childMar := effectiveMargin(child)
 		col := attrFloat(child.Attr("col"), 1.0)
 		// 子への割り当て = 比率に応じた content 幅 + その子自身の左右 margin
 		childW := availW * (col / totalCol)
@@ -229,14 +248,14 @@ func layoutRow(node *model.Node, target *Box, x, y, w, h float64) {
 	// 各子要素の水平 margin を事前に読み取り、幅方向の合計を算出する。
 	totalMarginW := 0.0
 	for _, child := range children {
-		_, childMar := parseClassSpacing(child.Attr("class"))
+		childMar := effectiveMargin(child)
 		totalMarginW += childMar.Left + childMar.Right
 	}
 	remainingW := w - gap*float64(len(children)-1) - totalMarginW
 	curX := x
 
 	for i, child := range children {
-		_, childMar := parseClassSpacing(child.Attr("class"))
+		childMar := effectiveMargin(child)
 		span := attrFloat(child.Attr("span"), 12/float64(len(children)))
 		cw := remainingW*(span/12.0) + childMar.Left + childMar.Right
 		cb := &Box{ID: childID(target.ID, i), Tag: child.Tag, Label: labelOf(child)}
@@ -367,10 +386,59 @@ func parseClassSpacing(class string) (Spacing, Spacing) {
 	return pad, mar
 }
 
+// IsItemLike reports whether a tag behaves as a layout item slot
+// (<item> and <spacer> are both treated identically by the renderer).
+func IsItemLike(tag string) bool {
+	return tag == "item" || tag == "spacer"
+}
+
 func spacingValue(s string) float64 {
 	n, err := strconv.Atoi(s)
 	if err != nil {
 		return 0
 	}
 	return float64(n * spacingUnit)
+}
+
+// parseAttrMargin reads direct pixel-value margin attributes from a DSL node's
+// attribute map. Supported attributes: margin, margin-top, margin-right,
+// margin-bottom, margin-left. Values are in pixels (floats).
+// When `margin` and a directional key (e.g. `margin-top`) are both present,
+// the directional key overrides the corresponding side from `margin`.
+func parseAttrMargin(attrs map[string]string) Spacing {
+	if len(attrs) == 0 {
+		return Spacing{}
+	}
+	m := Spacing{}
+	if v := attrs["margin"]; v != "" {
+		val := attrFloat(v, 0)
+		m = Spacing{Top: val, Right: val, Bottom: val, Left: val}
+	}
+	if v := attrs["margin-top"]; v != "" {
+		m.Top = attrFloat(v, 0)
+	}
+	if v := attrs["margin-right"]; v != "" {
+		m.Right = attrFloat(v, 0)
+	}
+	if v := attrs["margin-bottom"]; v != "" {
+		m.Bottom = attrFloat(v, 0)
+	}
+	if v := attrs["margin-left"]; v != "" {
+		m.Left = attrFloat(v, 0)
+	}
+	return m
+}
+
+// effectiveMargin returns the combined margin for a node by summing
+// class-based spacing (ma-N, mt-N …) and direct px-value attributes
+// (margin, margin-top …).
+func effectiveMargin(node *model.Node) Spacing {
+	_, classMar := parseClassSpacing(node.Attr("class"))
+	attrMar := parseAttrMargin(node.Attrs)
+	return Spacing{
+		Top:    classMar.Top + attrMar.Top,
+		Right:  classMar.Right + attrMar.Right,
+		Bottom: classMar.Bottom + attrMar.Bottom,
+		Left:   classMar.Left + attrMar.Left,
+	}
 }
