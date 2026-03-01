@@ -3,8 +3,10 @@
 <!--   Tier 2 Application  : EC2 / ECS / EKS  (App Subnet per AZ)                      -->
 <!--   Tier 3 Data         : Aurora / ElastiCache / RDS  (DB Subnet per AZ)            -->
 <!-- Resource Icons (Res_*) are placed alongside their parent service icons             -->
-<frame width="1900" height="1100" class="pa-4">
-  <aws-cloud title="AWS Cloud">
+<frame width="1900" height="1280" class="pa-4">
+  <aws-account title="AWS Account">
+
+    <aws-cloud title="AWS Cloud">
 
     <!-- ── Tier 1: Presentation — global services ── -->
     <generic-group title="Presentation Tier – Global" align="middle-spread">
@@ -59,7 +61,7 @@
           <item id="1580" />  <!-- VPC Flow Logs     — resource: flow log -->
         </generic-group>
 
-        <row gap="8" row="5">
+        <row gap="8" row="8">
 
           <!-- ── AZ: ap-northeast-1a (Primary) ── -->
           <col span="6">
@@ -69,15 +71,17 @@
               </public-subnet>
               <!-- Tier 2: Application (primary) -->
               <private-subnet title="App Subnet (10.0.1.0/24)" row="3">
-                <auto-scaling-group title="Auto Scaling Group">
-                  <item id="27" />    <!-- EC2                — primary application server -->
-                  <item id="1790" />  <!-- EC2 Instance       — resource: instance -->
-                  <item id="1628" />  <!-- EBS Volume         — resource: gp3 volume -->
-                </auto-scaling-group>
-                <item id="547" />   <!-- ECS                — containerised workloads -->
-                <item id="1685" />  <!-- ECS Task           — resource: task -->
-                <item id="1684" />  <!-- ECS Service        — resource: service -->
-                <item id="548" />   <!-- EKS                — Kubernetes nodes -->
+                <row gap="4">
+                  <auto-scaling-group title="Auto Scaling Group">
+                    <item id="27" />    <!-- EC2              — primary application server -->
+                    <item id="1790" />  <!-- EC2 Instance     — resource: instance -->
+                    <item id="1628" />  <!-- EBS Volume       — resource: gp3 volume -->
+                  </auto-scaling-group>
+                  <item id="547" />   <!-- ECS              — containerised workloads -->
+                  <item id="1685" />  <!-- ECS Task         — resource: task -->
+                  <item id="1684" />  <!-- ECS Service      — resource: service -->
+                  <item id="548" />   <!-- EKS              — Kubernetes nodes -->
+                </row>
               </private-subnet>
               <!-- Tier 3: Data (primary / write endpoint) -->
               <private-subnet title="DB Subnet (10.0.2.0/24)" row="2">
@@ -93,13 +97,15 @@
             <availability-zone title="AZ: ap-northeast-1b">
               <!-- Tier 2: Application (standby) -->
               <private-subnet title="App Subnet (10.0.17.0/24)" row="3">
-                <auto-scaling-group title="Auto Scaling Group">
-                  <item id="27" />    <!-- EC2               — standby application server -->
-                  <item id="1791" />  <!-- EC2 Instances     — resource: multiple instances -->
-                </auto-scaling-group>
-                <item id="547" />   <!-- ECS               — standby container tasks -->
-                <item id="1683" />  <!-- ECS Service Connect — resource: service mesh -->
-                <item id="1677" />  <!-- ECR Image          — resource: container image -->
+                <row gap="4">
+                  <auto-scaling-group title="Auto Scaling Group">
+                    <item id="27" />    <!-- EC2              — standby application server -->
+                    <item id="1791" />  <!-- EC2 Instances    — resource: multiple instances -->
+                  </auto-scaling-group>
+                  <item id="547" />   <!-- ECS              — standby container tasks -->
+                  <item id="1683" />  <!-- ECS Service Connect — resource: service mesh -->
+                  <item id="1677" />  <!-- ECR Image         — resource: container image -->
+                </row>
               </private-subnet>
               <!-- Tier 3: Data (replica / standby) -->
               <private-subnet title="DB Subnet (10.0.18.0/24)" row="2">
@@ -114,7 +120,9 @@
         </row>
       </vpc>
     </region>
-  </aws-cloud>
+    </aws-cloud>
+
+  </aws-account>
 
   <!-- ── Traffic flow: Presentation → Application → Data ── -->
 
