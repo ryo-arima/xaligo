@@ -1,6 +1,6 @@
 {
   "name": "@ryo-arima/xaligo",
-  "version": "0.1.0",
+  "version": "0.0.1",
   "description": "WebAssembly build of xaligo — convert .xal DSL to Excalidraw JSON from TypeScript/JavaScript",
   "keywords": [
     "xaligo",
