@@ -1,0 +1,22 @@
+{
+  "name": "@xaligo/xaligo-linux-x64",
+  "version": "0.1.0",
+  "description": "xaligo binary for Linux x86_64",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ryo-arima/xaligo.git",
+    "directory": "packages/xaligo-linux-x64"
+  },
+  "os": ["linux"],
+  "cpu": ["x64"],
+  "files": [
+    "bin"
+  ],
+  "scripts": {
+    "clean": "true"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

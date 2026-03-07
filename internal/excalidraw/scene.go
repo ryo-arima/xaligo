@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"io/fs"
 	"math"
 	"math/rand"
 	"os"
@@ -131,16 +132,32 @@ func svgDataURL(path string) (string, error) {
 	return "data:image/svg+xml;base64," + base64.StdEncoding.EncodeToString(data), nil
 }
 
+// svgDataURLFS reads an SVG from an fs.FS and returns it as a base64 data URL.
+func svgDataURLFS(fsys fs.FS, path string) (string, error) {
+	data, err := fs.ReadFile(fsys, path)
+	if err != nil {
+		return "", err
+	}
+	return "data:image/svg+xml;base64," + base64.StdEncoding.EncodeToString(data), nil
+}
+
+// BuildJSONWithFS is a convenience wrapper for WASM / embedded builds.
+// It uses fsys (typically an embed.FS) for all asset reads instead of the OS
+// filesystem.  catalogCSV and svgGroupDir are resolved relative to the root
+// of fsys (e.g. "service-catalog.csv" and "svg/Architecture-Group-Icons").
+func BuildJSONWithFS(root *layout.Box, fsys fs.FS, catalogCSV, svgGroupDir string, itemIconSize float64, connections []*model.Node, abbrevMap map[int]string) ([]byte, error) {
+	return BuildJSON(root, svgGroupDir, catalogCSV, "", itemIconSize, connections, abbrevMap, fsys)
+}
+
 // BuildJSON converts a Box layout tree into Excalidraw JSON.
-// svgGroupDir:  absolute path to Architecture-Group-Icons/
-// catalogCSV:   absolute path to service-catalog.csv (used by <item> tags)
-// projectRoot:  project root directory (used to resolve rel_path from catalog)
-// itemIconSize: default maximum icon size (px) for <item> elements;
-//               the <frame item-size="N"> attribute overrides this value.
+// svgGroupDir:  absolute path to Architecture-Group-Icons/ (or FS-relative path when fsys≠nil)
+// catalogCSV:   absolute path to service-catalog.csv (or FS-relative path when fsys≠nil)
+// projectRoot:  project root directory (used to resolve rel_path from catalog; ignored when fsys≠nil)
+// itemIconSize: default maximum icon size (px) for <item> elements.
 // connections:  <connection> nodes extracted from the DSL (may be nil).
-// abbrevMap is an optional catalog-ID → abbreviation map derived from services.csv.
-// When provided, its entries take priority over the built-in itemAbbreviations table.
-func BuildJSON(root *layout.Box, svgGroupDir string, catalogCSV string, projectRoot string, itemIconSize float64, connections []*model.Node, abbrevMap map[int]string) ([]byte, error) {
+// abbrevMap:    optional catalog-ID → abbreviation map derived from services.csv.
+// fsys:         when non-nil, all asset reads go through this fs.FS (WASM / embedded mode).
+func BuildJSON(root *layout.Box, svgGroupDir string, catalogCSV string, projectRoot string, itemIconSize float64, connections []*model.Node, abbrevMap map[int]string, fsys fs.FS) ([]byte, error) {
 	if root == nil {
 		return nil, fmt.Errorf("root layout is nil")
 	}
@@ -185,9 +202,9 @@ func BuildJSON(root *layout.Box, svgGroupDir string, catalogCSV string, projectR
 	itemImgIDs   := map[int]string{}
 	itemLblIDs   := map[int]string{}
 
-	walk(root, &elements, files, svgGroupDir, catalogCSV, projectRoot, r, root, itemGroups, ancestorBoxes)
+	walk(root, &elements, files, svgGroupDir, catalogCSV, projectRoot, fsys, r, root, itemGroups, ancestorBoxes)
 	for ancID, items := range itemGroups {
-		renderItemGrid(items, ancestorBoxes[ancID], &elements, files, catalogCSV, projectRoot, itemIconSize, r, itemImgRects, itemLblRects, itemImgIDs, itemLblIDs, abbrevMap)
+		renderItemGrid(items, ancestorBoxes[ancID], &elements, files, catalogCSV, projectRoot, fsys, itemIconSize, r, itemImgRects, itemLblRects, itemImgIDs, itemLblIDs, abbrevMap)
 	}
 	renderConnections(connections, itemImgRects, itemLblRects, itemImgIDs, itemLblIDs, &elements, r)
 
@@ -205,7 +222,7 @@ func BuildJSON(root *layout.Box, svgGroupDir string, catalogCSV string, projectR
 	return json.MarshalIndent(out, "", "  ")
 }
 
-func walk(b *layout.Box, elements *[]map[string]any, files map[string]any, svgGroupDir string, catalogCSV string, projectRoot string, r *rand.Rand, visibleAncestor *layout.Box, itemGroups map[string][]*layout.Box, ancestorBoxes map[string]*layout.Box) {
+func walk(b *layout.Box, elements *[]map[string]any, files map[string]any, svgGroupDir string, catalogCSV string, projectRoot string, fsys fs.FS, r *rand.Rand, visibleAncestor *layout.Box, itemGroups map[string][]*layout.Box, ancestorBoxes map[string]*layout.Box) {
 	if layout.IsItemLike(b.Tag) {
 		// 描画はしない: visibleAncestor に結び付けて収集のみ (<item> / <spacer> 共通)
 		key := visibleAncestor.ID
@@ -229,7 +246,7 @@ func walk(b *layout.Box, elements *[]map[string]any, files map[string]any, svgGr
 				itemGroups[key] = append(itemGroups[key], c)
 				ancestorBoxes[key] = visibleAncestor
 			} else {
-				walk(c, elements, files, svgGroupDir, catalogCSV, projectRoot, r, visibleAncestor, itemGroups, ancestorBoxes)
+				walk(c, elements, files, svgGroupDir, catalogCSV, projectRoot, fsys, r, visibleAncestor, itemGroups, ancestorBoxes)
 			}
 		}
 		return
@@ -266,7 +283,16 @@ func walk(b *layout.Box, elements *[]map[string]any, files map[string]any, svgGr
 			textX := b.X + 4
 			if gd.IconFile != "" && svgGroupDir != "" {
 				iconPath := filepath.Join(svgGroupDir, gd.IconFile)
-				if dataURL, err := svgDataURL(iconPath); err == nil {
+				var dataURL string
+				var err error
+				if fsys != nil {
+					// In embedded mode, use forward slashes even on Windows.
+					iconPath = svgGroupDir + "/" + gd.IconFile
+					dataURL, err = svgDataURLFS(fsys, iconPath)
+				} else {
+					dataURL, err = svgDataURL(iconPath)
+				}
+				if err == nil {
 					fid := svgFileID(gd.IconFile)
 					*elements = append(*elements, map[string]any{
 						"id": fmt.Sprintf("%s-icon", b.ID), "type": "image",
@@ -367,7 +393,7 @@ func walk(b *layout.Box, elements *[]map[string]any, files map[string]any, svgGr
 		nextVisible = visibleAncestor
 	}
 	for _, c := range b.Children {
-		walk(c, elements, files, svgGroupDir, catalogCSV, projectRoot, r, nextVisible, itemGroups, ancestorBoxes)
+		walk(c, elements, files, svgGroupDir, catalogCSV, projectRoot, fsys, r, nextVisible, itemGroups, ancestorBoxes)
 	}
 }
 
@@ -411,7 +437,7 @@ func parseItemAlign(align string) (vert, horiz string) {
 // Exception: when the natural (space-constrained, uncapped) icon size is ≤ 32 px,
 // items are placed inline with the header (right of the label, centred in the
 // 32 px header band) to avoid wasting the large empty space below.
-func renderItemGrid(items []*layout.Box, ancestor *layout.Box, elements *[]map[string]any, files map[string]any, catalogCSV string, projectRoot string, maxSize float64, r *rand.Rand, itemImgRects map[int][4]float64, itemLblRects map[int][4]float64, itemImgIDs map[int]string, itemLblIDs map[int]string, abbrevMap map[int]string) {
+func renderItemGrid(items []*layout.Box, ancestor *layout.Box, elements *[]map[string]any, files map[string]any, catalogCSV string, projectRoot string, fsys fs.FS, maxSize float64, r *rand.Rand, itemImgRects map[int][4]float64, itemLblRects map[int][4]float64, itemImgIDs map[int]string, itemLblIDs map[int]string, abbrevMap map[int]string) {
 	if catalogCSV == "" || len(items) == 0 || ancestor == nil {
 		return
 	}
@@ -503,7 +529,7 @@ func renderItemGrid(items []*layout.Box, ancestor *layout.Box, elements *[]map[s
 						}
 						for i, item := range items {
 							iconX := startX + float64(i)*stepX
-							renderIconAt(item.ID, item.Attrs["id"], iconX, iconY, inlineSize, elements, files, catalogCSV, projectRoot, r, itemImgRects, itemLblRects, itemImgIDs, itemLblIDs, abbrevMap)
+							renderIconAt(item.ID, item.Attrs["id"], iconX, iconY, inlineSize, elements, files, catalogCSV, projectRoot, fsys, r, itemImgRects, itemLblRects, itemImgIDs, itemLblIDs, abbrevMap)
 						}
 						return
 					}
@@ -576,14 +602,14 @@ func renderItemGrid(items []*layout.Box, ancestor *layout.Box, elements *[]map[s
 
 	for i, item := range items {
 		iconX := startX + float64(i)*stepX
-		renderIconAt(item.ID, item.Attrs["id"], iconX, iconY, iconSize, elements, files, catalogCSV, projectRoot, r, itemImgRects, itemLblRects, itemImgIDs, itemLblIDs, abbrevMap)
+		renderIconAt(item.ID, item.Attrs["id"], iconX, iconY, iconSize, elements, files, catalogCSV, projectRoot, fsys, r, itemImgRects, itemLblRects, itemImgIDs, itemLblIDs, abbrevMap)
 	}
 }
 
 // renderIconAt draws a single service icon (image + label) at an explicit position.
 // itemImgRects/itemLblRects/itemImgIDs/itemLblIDs are populated with the bounding rect
 // and element ID of the image and label elements, keyed by the catalog integer ID.
-func renderIconAt(boxID, idAttr string, iconX, iconY, iconSize float64, elements *[]map[string]any, files map[string]any, catalogCSV string, projectRoot string, r *rand.Rand, itemImgRects map[int][4]float64, itemLblRects map[int][4]float64, itemImgIDs map[int]string, itemLblIDs map[int]string, abbrevMap map[int]string) {
+func renderIconAt(boxID, idAttr string, iconX, iconY, iconSize float64, elements *[]map[string]any, files map[string]any, catalogCSV string, projectRoot string, fsys fs.FS, r *rand.Rand, itemImgRects map[int][4]float64, itemLblRects map[int][4]float64, itemImgIDs map[int]string, itemLblIDs map[int]string, abbrevMap map[int]string) {
 	if catalogCSV == "" {
 		return
 	}
@@ -598,7 +624,12 @@ func renderIconAt(boxID, idAttr string, iconX, iconY, iconSize float64, elements
 		fmt.Fprintf(os.Stderr, "WARNING: <item id=%q>: id must be a single integer: %v\n", idAttr, err)
 		return
 	}
-	ce, err := repository.LookupCatalogByID(catalogCSV, id)
+	var ce repository.CatalogEntry
+	if fsys != nil {
+		ce, err = repository.LookupCatalogByIDFS(fsys, catalogCSV, id)
+	} else {
+		ce, err = repository.LookupCatalogByID(catalogCSV, id)
+	}
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "WARNING: <item id=%d>: %v\n", id, err)
 		return

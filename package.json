@@ -1,0 +1,21 @@
+{
+  "name": "xaligo-workspace",
+  "private": true,
+  "workspaces": [
+    "packages/xaligo",
+    "packages/xaligo-wasm",
+    "packages/xaligo-darwin-arm64",
+    "packages/xaligo-darwin-x64",
+    "packages/xaligo-linux-arm64",
+    "packages/xaligo-linux-x64",
+    "packages/xaligo-win32-x64"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces --if-present",
+    "clean": "npm run clean --workspaces --if-present"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  }
+}

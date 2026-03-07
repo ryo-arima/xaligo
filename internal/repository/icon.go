@@ -6,6 +6,7 @@ import (
 	"encoding/csv"
 	"fmt"
 	"io"
+	"io/fs"
 	"os"
 	"regexp"
 	"strconv"
@@ -173,6 +174,68 @@ func LookupCatalogByID(csvPath string, id int) (CatalogEntry, error) {
 		}, nil
 	}
 	return CatalogEntry{}, fmt.Errorf("catalog ID %d not found", id)
+}
+
+// LookupCatalogByIDFS is the fs.FS-aware variant of LookupCatalogByID.
+// It opens csvPath inside fsys instead of the OS filesystem.
+// Use this in contexts where assets are embedded (e.g. the WASM build).
+func LookupCatalogByIDFS(fsys fs.FS, csvPath string, id int) (CatalogEntry, error) {
+	f, err := fsys.Open(csvPath)
+	if err != nil {
+		return CatalogEntry{}, fmt.Errorf("open catalog CSV %s: %w", csvPath, err)
+	}
+	defer f.Close()
+	r := csv.NewReader(f)
+	r.Comment = '#'
+	r.FieldsPerRecord = -1
+	for {
+		rec, err := r.Read()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			continue
+		}
+		if len(rec) < 6 {
+			continue
+		}
+		rowID, err := strconv.Atoi(strings.TrimSpace(rec[0]))
+		if err != nil || rowID != id {
+			continue
+		}
+		raw := strings.TrimSpace(rec[5])
+		var dataURL string
+		if strings.HasPrefix(raw, "data:") {
+			dataURL = raw
+		} else if raw != "" {
+			dataURL = "data:image/svg+xml;base64," + raw
+		}
+		return CatalogEntry{
+			ID:       rowID,
+			Category: strings.TrimSpace(rec[1]),
+			Service:  strings.TrimSpace(rec[2]),
+			SVGFile:  strings.TrimSpace(rec[3]),
+			RelPath:  strings.TrimSpace(rec[4]),
+			DataURL:  dataURL,
+		}, nil
+	}
+	return CatalogEntry{}, fmt.Errorf("catalog ID %d not found", id)
+}
+
+// SvgToDataURLFS is the fs.FS-aware variant of SvgToDataURL.
+// It reads the SVG file from fsys instead of the OS filesystem.
+func SvgToDataURLFS(fsys fs.FS, path string) (string, error) {
+	f, err := fsys.Open(path)
+	if err != nil {
+		return "", fmt.Errorf("open SVG %s: %w", path, err)
+	}
+	defer f.Close()
+	data, err := io.ReadAll(f)
+	if err != nil {
+		return "", fmt.Errorf("read SVG %s: %w", path, err)
+	}
+	encoded := base64.StdEncoding.EncodeToString(data)
+	return "data:image/svg+xml;base64," + encoded, nil
 }
 
 var svgFillRe = regexp.MustCompile(`(?i)fill[=:]["']?(#[0-9a-fA-F]{3,8}|[a-zA-Z]+)`)

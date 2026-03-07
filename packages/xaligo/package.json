@@ -1,0 +1,41 @@
+{
+  "name": "@xaligo/xaligo",
+  "version": "0.1.0",
+  "description": "Convert xaligo .xal DSL to Excalidraw JSON",
+  "keywords": [
+    "xaligo",
+    "excalidraw",
+    "aws",
+    "architecture-diagram",
+    "dsl"
+  ],
+  "homepage": "https://github.com/ryo-arima/xaligo",
+  "bugs": {
+    "url": "https://github.com/ryo-arima/xaligo/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ryo-arima/xaligo.git",
+    "directory": "packages/xaligo"
+  },
+  "license": "MIT",
+  "bin": {
+    "xaligo": "./bin.js"
+  },
+  "files": [
+    "bin.js"
+  ],
+  "scripts": {
+    "clean": "true"
+  },
+  "optionalDependencies": {
+    "@xaligo/xaligo-darwin-arm64": "0.1.0",
+    "@xaligo/xaligo-darwin-x64": "0.1.0",
+    "@xaligo/xaligo-linux-arm64": "0.1.0",
+    "@xaligo/xaligo-linux-x64": "0.1.0",
+    "@xaligo/xaligo-win32-x64": "0.1.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

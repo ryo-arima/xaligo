@@ -1,0 +1,2 @@
+# Build artifact — populated by CI/CD
+# The xaligo.exe binary for win32/x64 is placed here during release.

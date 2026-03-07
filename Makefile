@@ -1,7 +1,8 @@
-.PHONY: help build test fmt tidy run init clean
+.PHONY: help build build-wasm test fmt tidy run init clean
 
-BIN_DIR := .bin
-BINARY := $(BIN_DIR)/xaligo
+BIN_DIR  := .bin
+BINARY   := $(BIN_DIR)/xaligo
+WASM_OUT := packages/xaligo-wasm/wasm
 
 help: ## Show commands
 	@echo "Available targets:"
@@ -11,6 +12,13 @@ build: ## Build CLI binary
 	@mkdir -p $(BIN_DIR)
 	go build -o $(BINARY) ./cmd
 	@echo "Built: $(BINARY)"
+
+build-wasm: ## Build WASM binary and copy Go runtime glue into packages/xaligo-wasm/wasm/
+	@mkdir -p $(WASM_OUT)
+	GOOS=js GOARCH=wasm go build -o $(WASM_OUT)/xaligo.wasm ./cmd/wasm
+	cp "$(shell go env GOROOT)/lib/wasm/wasm_exec.js" $(WASM_OUT)/wasm_exec.js
+	@echo "Built: $(WASM_OUT)/xaligo.wasm"
+	@echo "Copied: $(WASM_OUT)/wasm_exec.js (from GOROOT)"
 
 test: ## Run tests
 	go test ./...
@@ -30,3 +38,4 @@ init: build ## Create starter template under examples/
 
 clean: ## Remove build artifacts
 	rm -rf $(BIN_DIR)
+	rm -f $(WASM_OUT)/xaligo.wasm $(WASM_OUT)/wasm_exec.js

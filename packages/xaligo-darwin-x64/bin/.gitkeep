@@ -1,0 +1,2 @@
+# Build artifact — populated by CI/CD
+# The xaligo binary for darwin/x64 is placed here during release.

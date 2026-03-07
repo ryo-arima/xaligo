@@ -3,6 +3,7 @@ package repository
 import (
 	"bufio"
 	"fmt"
+	"io"
 	"os"
 	"strconv"
 	"strings"
@@ -10,22 +11,31 @@ import (
 	"github.com/ryo-arima/xaligo/internal/entity"
 )
 
-// ReadServiceList reads a CSV/TXT service list used with --list flag.
-//
-// Format support:
-//   - Lines beginning with '#' are comments and skipped.
-//   - Single-column: service name only
-//   - Two-column:    id,service_name  OR  service_name,category
-//   - Three-column+: id,service_name,category,...
+// ReadServiceList reads a CSV/TXT service list from the given file path.
 func ReadServiceList(path string) ([]entity.ServiceEntry, error) {
 	f, err := os.Open(path)
 	if err != nil {
 		return nil, fmt.Errorf("open service list %s: %w", path, err)
 	}
 	defer f.Close()
+	entries, err := ReadServiceListFromReader(f)
+	if err != nil {
+		return nil, fmt.Errorf("read service list %s: %w", path, err)
+	}
+	return entries, nil
+}
 
+// ReadServiceListFromReader parses service list CSV content from an io.Reader.
+// This is the Reader-based variant used by the WASM build to avoid file I/O.
+//
+// Format support:
+//   - Lines beginning with '#' are comments and skipped.
+//   - Single-column: service name only
+//   - Two-column:    id,service_name  OR  service_name,category
+//   - Three-column+: id,service_name,category,...
+func ReadServiceListFromReader(r io.Reader) ([]entity.ServiceEntry, error) {
 	var entries []entity.ServiceEntry
-	scanner := bufio.NewScanner(f)
+	scanner := bufio.NewScanner(r)
 	for scanner.Scan() {
 		line := strings.TrimSpace(scanner.Text())
 		if line == "" || strings.HasPrefix(line, "#") {
@@ -70,7 +80,7 @@ func ReadServiceList(path string) ([]entity.ServiceEntry, error) {
 		}
 	}
 	if err := scanner.Err(); err != nil {
-		return nil, fmt.Errorf("read service list %s: %w", path, err)
+		return nil, fmt.Errorf("scan service list: %w", err)
 	}
 	return entries, nil
 }
