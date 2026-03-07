@@ -1,0 +1,77 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g. 1.2.3 — without leading v)'
+        required: true
+        type: string
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write   # needed to push the tag
+      packages: write   # needed to publish to GitHub Packages
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Validate version format
+        run: |
+          echo "${{ inputs.version }}" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$' \
+            || { echo "Invalid version: ${{ inputs.version }}. Must be X.Y.Z"; exit 1; }
+
+      - name: Configure git
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+          cache: true
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://npm.pkg.github.com'
+          scope: '@xaligo'
+
+      - name: Install Go dependencies
+        run: go mod tidy
+
+      - name: Build WASM
+        run: make build-wasm
+
+      - name: Bump version in packages/xaligo/package.json
+        run: |
+          cd packages/xaligo
+          npm version "${{ inputs.version }}" --no-git-tag-version
+
+      - name: Install npm dependencies
+        run: npm install
+
+      - name: Build TypeScript package
+        run: npm run build --workspace=packages/xaligo
+
+      - name: Commit version bump
+        run: |
+          git add packages/xaligo/package.json
+          git commit -m "chore: release v${{ inputs.version }}"
+
+      - name: Create and push tag
+        run: |
+          git tag "v${{ inputs.version }}"
+          git push origin HEAD --follow-tags
+
+      - name: Publish to GitHub Packages
+        run: npm publish --workspace=packages/xaligo
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

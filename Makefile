@@ -2,7 +2,7 @@
 
 BIN_DIR  := .bin
 BINARY   := $(BIN_DIR)/xaligo
-WASM_OUT := packages/xaligo-wasm/wasm
+WASM_OUT := packages/xaligo/wasm
 
 help: ## Show commands
 	@echo "Available targets:"
@@ -13,7 +13,7 @@ build: ## Build CLI binary
 	go build -o $(BINARY) ./cmd
 	@echo "Built: $(BINARY)"
 
-build-wasm: ## Build WASM binary and copy Go runtime glue into packages/xaligo-wasm/wasm/
+build-wasm: ## Build WASM binary and copy Go runtime glue into packages/xaligo/wasm/
 	@mkdir -p $(WASM_OUT)
 	GOOS=js GOARCH=wasm go build -o $(WASM_OUT)/xaligo.wasm ./cmd/wasm
 	cp "$(shell go env GOROOT)/lib/wasm/wasm_exec.js" $(WASM_OUT)/wasm_exec.js

@@ -1,5 +1,5 @@
 /**
- * @xaligo/xaligo-wasm
+ * @xaligo/xaligo
  *
  * TypeScript wrapper for the xaligo WebAssembly module.
  *
@@ -9,7 +9,7 @@
  * Usage (Node.js / VS Code extension):
  *
  * ```ts
- * import { loadXaligo } from '@xaligo/xaligo-wasm';
+ * import { loadXaligo } from '@xaligo/xaligo';
  *
  * const xaligo = await loadXaligo();
  *

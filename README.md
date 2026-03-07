@@ -25,30 +25,19 @@ go mod tidy
 make build        # produces .bin/xaligo
 ```
 
-### npm (binary wrapper)
-
-Platform-specific binaries are published as optional npm dependencies.
-The main package auto-selects the right binary at runtime:
-
-```bash
-npm install @xaligo/xaligo
-```
-
-Supported platforms: `darwin-arm64`, `darwin-x64`, `linux-arm64`, `linux-x64`, `win32-x64`
-
-### WebAssembly (TypeScript / VS Code extension)
+### npm / WebAssembly (TypeScript / VS Code extension)
 
 A WebAssembly package is provided for environments where spawning a child process is not feasible
 (e.g., a VS Code web extension or an extension running in the extension host).
 
 ```bash
-npm install @xaligo/xaligo-wasm
+npm install @xaligo/xaligo
 ```
 
 After building the WASM artifact (`make build-wasm`), use it from TypeScript:
 
 ```typescript
-import { loadXaligo } from "@xaligo/xaligo-wasm";
+import { loadXaligo } from "@xaligo/xaligo";
 
 const xaligo = await loadXaligo();                         // loads xaligo.wasm on first call
 
@@ -62,21 +51,15 @@ const json = await xaligo.renderWithServices(xalSource, servicesCsv);
 **Build the WASM artifact:**
 
 ```bash
-make build-wasm   # outputs packages/xaligo-wasm/wasm/xaligo.wasm
-                  #         and packages/xaligo-wasm/wasm/wasm_exec.js
+make build-wasm   # outputs packages/xaligo/wasm/xaligo.wasm
+                  #         and packages/xaligo/wasm/wasm_exec.js
 ```
 
 ## npm Package Layout
 
 ```
 packages/
-├── xaligo/             @xaligo/xaligo          — main CLI wrapper (platform auto-detect)
-├── xaligo-darwin-arm64/ @xaligo/xaligo-darwin-arm64
-├── xaligo-darwin-x64/   @xaligo/xaligo-darwin-x64
-├── xaligo-linux-arm64/  @xaligo/xaligo-linux-arm64
-├── xaligo-linux-x64/    @xaligo/xaligo-linux-x64
-├── xaligo-win32-x64/    @xaligo/xaligo-win32-x64
-└── xaligo-wasm/        @xaligo/xaligo-wasm     — WASM + TypeScript wrapper
+└── xaligo/   @xaligo/xaligo   — WASM + TypeScript wrapper
 ```
 
 ## Commands
@@ -317,7 +300,7 @@ item:
 
 ```bash
 make build        # build .bin/xaligo (native Go binary)
-make build-wasm   # build WASM artifact + copy wasm_exec.js into packages/xaligo-wasm/wasm/
+make build-wasm   # build WASM artifact + copy wasm_exec.js into packages/xaligo/wasm/
 make run          # examples/sample.xal → output/sample.excalidraw
 make clean        # remove .bin/, output/, and WASM artifacts
 go test ./...
