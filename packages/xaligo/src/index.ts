@@ -1,5 +1,5 @@
 /**
- * @xaligo/xaligo
+ * @ryo-arima/xaligo
  *
  * TypeScript wrapper for the xaligo WebAssembly module.
  *
@@ -9,7 +9,7 @@
  * Usage (Node.js / VS Code extension):
  *
  * ```ts
- * import { loadXaligo } from '@xaligo/xaligo';
+ * import { loadXaligo } from '@ryo-arima/xaligo';
  *
  * const xaligo = await loadXaligo();
  *

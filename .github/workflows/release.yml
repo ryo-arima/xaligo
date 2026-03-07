@@ -42,7 +42,7 @@ jobs:
         with:
           node-version: '20'
           registry-url: 'https://npm.pkg.github.com'
-          scope: '@xaligo'
+          scope: '@ryo-arima'
 
       - name: Install Go dependencies
         run: go mod tidy

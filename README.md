@@ -31,13 +31,13 @@ A WebAssembly package is provided for environments where spawning a child proces
 (e.g., a VS Code web extension or an extension running in the extension host).
 
 ```bash
-npm install @xaligo/xaligo
+npm install @ryo-arima/xaligo
 ```
 
 After building the WASM artifact (`make build-wasm`), use it from TypeScript:
 
 ```typescript
-import { loadXaligo } from "@xaligo/xaligo";
+import { loadXaligo } from "@ryo-arima/xaligo";
 
 const xaligo = await loadXaligo();                         // loads xaligo.wasm on first call
 
@@ -59,7 +59,7 @@ make build-wasm   # outputs packages/xaligo/wasm/xaligo.wasm
 
 ```
 packages/
-└── xaligo/   @xaligo/xaligo   — WASM + TypeScript wrapper
+└── xaligo/   @ryo-arima/xaligo   — WASM + TypeScript wrapper
 ```
 
 ## Commands

@@ -1,6 +1,6 @@
 {
-  "name": "@xaligo/xaligo",
-  "version": "0.0.1",
+  "name": "@ryo-arima/xaligo",
+  "version": "0.1.0",
   "description": "WebAssembly build of xaligo — convert .xal DSL to Excalidraw JSON from TypeScript/JavaScript",
   "keywords": [
     "xaligo",
@@ -41,7 +41,8 @@
     "clean": "rimraf dist"
   },
   "publishConfig": {
-    "registry": "https://npm.pkg.github.com"
+    "registry": "https://npm.pkg.github.com",
+    "access": "public"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
