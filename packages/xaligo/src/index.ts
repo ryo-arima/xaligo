@@ -62,10 +62,10 @@ export interface XaligoWasm {
 
 declare global {
   // Injected by wasm_exec.js
-  class Go {
+  var Go: new () => {
     importObject: WebAssembly.Imports;
     run(instance: WebAssembly.Instance): Promise<void>;
-  }
+  };
   function xaligoRender(xal: string): WasmResult;
   function xaligoRenderWithServices(xal: string, servicesCsv: string): WasmResult;
 }
@@ -165,10 +165,4 @@ function waitFor(predicate: () => boolean, timeoutMs: number): Promise<void> {
       }
     }, 10);
   });
-}
-
-// Extend globalThis so TypeScript knows about the `Go` constructor from wasm_exec.js.
-declare global {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const Go: new () => any;
 }
