@@ -61,6 +61,11 @@ export interface XaligoWasm {
 // ---------------------------------------------------------------------------
 
 declare global {
+  // Injected by wasm_exec.js
+  class Go {
+    importObject: WebAssembly.Imports;
+    run(instance: WebAssembly.Instance): Promise<void>;
+  }
   function xaligoRender(xal: string): WasmResult;
   function xaligoRenderWithServices(xal: string, servicesCsv: string): WasmResult;
 }
