@@ -2,7 +2,8 @@
 
 BIN_DIR  := .bin
 BINARY   := $(BIN_DIR)/xaligo
-WASM_OUT := packages/xaligo/wasm
+WASM_OUT      := packages/xaligo/wasm
+WASM_EXEC_JS  := $(shell find "$(shell go env GOROOT)" -name "wasm_exec.js" 2>/dev/null | head -1)
 
 help: ## Show commands
 	@echo "Available targets:"
@@ -16,9 +17,10 @@ build: ## Build CLI binary
 build-wasm: ## Build WASM binary and copy Go runtime glue into packages/xaligo/wasm/
 	@mkdir -p $(WASM_OUT)
 	GOOS=js GOARCH=wasm go build -o $(WASM_OUT)/xaligo.wasm ./cmd/wasm
-	cp "$(shell go env GOROOT)/lib/wasm/wasm_exec.js" $(WASM_OUT)/wasm_exec.js
+	@test -n "$(WASM_EXEC_JS)" || { echo "ERROR: wasm_exec.js not found under GOROOT"; exit 1; }
+	cp "$(WASM_EXEC_JS)" $(WASM_OUT)/wasm_exec.js
 	@echo "Built: $(WASM_OUT)/xaligo.wasm"
-	@echo "Copied: $(WASM_OUT)/wasm_exec.js (from GOROOT)"
+	@echo "Copied: $(WASM_OUT)/wasm_exec.js (from $(WASM_EXEC_JS))"
 
 test: ## Run tests
 	go test ./...
